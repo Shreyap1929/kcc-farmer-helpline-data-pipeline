@@ -1,0 +1,38 @@
+text,lang,profile_crop,expected_route,expected_query_type,note
+MARKET RATE OF ONION ?,en,,LIVE_DATA_POINTER,Market Information,free-text market question missed by Stage 1 template flag
+What is the cotton price in Akola mandi today,en,,LIVE_DATA_POINTER,Market Information,
+कांद्याचा आजचा बाजारभाव काय आहे,mr,,LIVE_DATA_POINTER,Market Information,Marathi market price
+सोयाबीनला आज काय भाव आहे,mr,,LIVE_DATA_POINTER,Market Information,
+प्याज का आज का भाव क्या है,hi,,LIVE_DATA_POINTER,Market Information,Hindi market price
+Weather forecast for next week,en,,LIVE_DATA_POINTER,Weather,
+उद्या पाऊस पडेल का,mr,,LIVE_DATA_POINTER,Weather,Marathi rain tomorrow
+अगले हफ्ते मौसम कैसा रहेगा,hi,,LIVE_DATA_POINTER,Weather,Hindi weather
+Status of installment in PM Kisan Samman Nidhi Yojana,en,,SCHEME_POINTER,Government Schemes,
+पीएम किसान योजनेचा पुढचा हप्ता कधी येणार,mr,,SCHEME_POINTER,Government Schemes,Marathi installment date
+Crop insurance helpline number,en,,SCHEME_POINTER,Government Schemes,
+पीक विमा नुकसान भरपाई कशी मिळेल,mr,,SCHEME_POINTER,Government Schemes,Marathi crop insurance claim
+पीएम किसान की किस्त कब आएगी,hi,,SCHEME_POINTER,Government Schemes,Hindi installment
+Fertilizer dose for sugarcane,en,,EXPERT_REVIEW,Fertilizer Use and Availability,dose question - always expert
+Coragen spraying dose for brinjal,en,,EXPERT_REVIEW,Plant Protection,named pesticide + dose
+Attack of whitefly on cotton crop,en,,EXPERT_REVIEW,Plant Protection,pest question; answers are chemical
+How to control pink bollworm in cotton,en,,EXPERT_REVIEW,Plant Protection,
+कापसावर पांढरी माशी आली आहे काय फवारणी करावी,mr,,EXPERT_REVIEW,Plant Protection,Marathi spray question
+सोयाबीन मध्ये तणनाशक कोणते वापरावे,mr,,EXPERT_REVIEW,Weed Management,Marathi herbicide question
+मक्के में फॉल आर्मीवर्म का नियंत्रण कैसे करें,hi,,EXPERT_REVIEW,Plant Protection,Hindi pest control
+Weed management in soybean,en,,EXPERT_REVIEW,Weed Management,herbicide answers
+SOYBEAN VARIETIES ?,en,,ANSWER,Varieties,Exact wording of a frequent past KCC question.
+SOWING TIME OF GROUNDNUT CROP ?,en,,ANSWER,Sowing Time and Weather,Exact wording of a frequent past KCC question.
+Varieties of wheat,en,,ANSWER,Varieties,"Paraphrase of a frequent question; sits right at the calibrated answer threshold, so it can fail safe to an expert."
+Sowing time of maize,en,,ANSWER,Cultural Practices,Fails safe: best match is below the conservative calibrated answer threshold.
+Contact number of Mahatma Phule Krishi Vidyapeeth Rahuri,en,,ANSWER,Cultural Practices,pointer answer
+गव्हाचे सुधारित वाण कोणते आहेत,mr,,ANSWER,Varieties,"Known gap: Marathi questions score below the English-calibrated answer threshold, so they fail safe to an expert. Fix in Stage 3: translate to English first."
+Seed rate of soybean per acre,en,,ANSWER,Seeds,Seed rate is not a chemical dose. Fails safe: best match is below the conservative calibrated answer threshold.
+My crop has a disease what should I do,en,,CLARIFY,Plant Protection,no crop named
+पिकावर रोग आला आहे,mr,,CLARIFY,Plant Protection,Marathi - no crop named
+information,en,,CLARIFY,,too vague
+माहिती हवी,mr,,CLARIFY,,Marathi - too vague
+Leaves are turning yellow,en,Cotton (Kapas),EXPERT_REVIEW,Plant Protection,crop comes from the caller profile
+Who won the cricket match yesterday,en,,OUT_OF_SCOPE,,off-topic
+Book a train ticket to Mumbai,en,,OUT_OF_SCOPE,,off-topic. Known gap: similarity alone separates off-topic questions weakly (e5 scores are compressed); fails safe to an expert.
+Recharge my mobile phone,en,,OUT_OF_SCOPE,,off-topic. Known gap: similarity alone separates off-topic questions weakly (e5 scores are compressed); fails safe to an expert.
+Tell me a movie song,en,,OUT_OF_SCOPE,,off-topic

@@ -1,0 +1,26 @@
+# Marathi/Hindi farm terms -> English terms appended to the question before it is
+# embedded (Devanagari input only). Crop names come from crop_lexicon.yaml.
+#
+# Why: the knowledge base is English call-taker summaries. Without this, held-out
+# Marathi/Hindi questions retrieve an on-topic question only 3/12 times against
+# the real KB; with it, 10/12 (reports/stage2/crosslingual_report.md).
+# The held-out set was written after this glossary was frozen. Extend with care
+# and re-run `python -m src.triage.crosslingual` after any change.
+terms:
+  whitefly: ["पांढरी माशी", "सफेद मक्खी"]
+  caterpillar: ["अळी*", "इल्ली"]
+  disease: ["रोग"]
+  wilt: ["मर"]
+  weed: ["तण", "खरपतवार"]
+  variety: ["वाण", "किस्म"]
+  fertilizer: ["खत*", "खाद"]
+  spray: ["फवारणी*", "छिड़काव"]
+  market rate: ["बाजारभाव*", "भाव*"]
+  weather rain: ["पाऊस", "हवामान*", "मौसम", "बारिश"]
+  installment: ["हप्ता", "हप्त्या*", "किस्त"]
+  insurance: ["विमा", "बीमा"]
+  sowing: ["पेरणी", "बुवाई"]
+  irrigation subsidy: ["ठिबक", "सिंचन", "अनुदान*"]
+  flower drop: ["फूल गिर*", "फुलगळ"]
+  growth: ["बढ़वार", "वाढ*"]
+  pest attack: ["कीड", "कीट"]

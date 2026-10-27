@@ -1,0 +1,98 @@
+# Stage 2 triage-core configuration.
+# Thresholds marked "calibrated" are written by `python -m src.triage.build`
+# into data/artifacts/gate_thresholds.json; the values here are only the
+# fallback used before calibration has run.
+
+paths:
+  master: data/clean/kcc_mh_clean.parquet
+  views: data/views
+  artifacts: data/artifacts
+  reports: reports/stage2
+
+# Chronological split by year_month (inclusive upper bounds).
+# Train covers one full season cycle (Nov 2023 - Oct 2024, Feb 2024 missing).
+split:
+  train_end: "2024-10"
+  valid_end: "2024-12"
+  # test = everything after valid_end (2025-01 .. 2025-07)
+
+embedding:
+  # Chosen by reports/stage2/embedding_model_probe.md (best cross-lingual top-1/MRR).
+  model: intfloat/multilingual-e5-base
+  prefix: "query: "
+  max_seq_length: 128
+  batch_size: 128
+
+classifier:
+  # Query-type classes kept as-is; everything else becomes "Other".
+  query_types:
+    - Weather
+    - Government Schemes
+    - Plant Protection
+    - Cultural Practices
+    - Nutrient Management
+    - Fertilizer Use and Availability
+    - Market Information
+    - Water Management
+    - Weed Management
+    - Sowing Time and Weather
+    - Varieties
+    - Seeds
+  # Raw labels folded into a kept class before training.
+  query_type_aliases:
+    "Seeds and Planting Material": Seeds
+    "Water Management, Micro Irrigation": Water Management
+    "Crop Insurance": Government Schemes
+    "Insect Management": Plant Protection
+    "Disease Management": Plant Protection
+  # Crops with at least this many training rows get their own class.
+  crop_min_rows: 300
+
+retrieval:
+  top_k: 5
+  # Small additive boosts when the caller's profile matches the record.
+  crop_boost: 0.02
+  district_boost: 0.005
+  season_boost: 0.005
+
+gate:
+  # Fallbacks only; see header.
+  answer_min_similarity: 0.92
+  out_of_scope_max_similarity: 0.82
+  # Question types whose answer depends on the crop.
+  crop_dependent_types:
+    - Plant Protection
+    - Nutrient Management
+    - Fertilizer Use and Availability
+    - Weed Management
+    - Varieties
+    - Cultural Practices
+    - Sowing Time and Weather
+    - Seeds
+    - Water Management
+  crop_min_confidence: 0.6
+  # Classifier-only routing to the live/scheme pointers (no keyword matched).
+  live_market_type_confidence: 0.7
+  scheme_type_confidence: 0.6
+  # Topics whose answers are chemical 87-94% of the time (views_report.md):
+  # a confident prediction alone sends the call to an expert.
+  expert_only_types:
+    - Plant Protection
+    - Nutrient Management
+    - Fertilizer Use and Availability
+    - Weed Management
+  expert_type_confidence: 0.6
+  # Answer calibration. "Close" = char n-gram cosine >= answer_close_threshold
+  # between the served answer and the real one. Two real advisors answering the
+  # same question are close only ~38% of the time, so the target is relative:
+  # answered cases must be close at least this fraction as often as advisors
+  # agree with each other.
+  answer_close_threshold: 0.5
+  answer_relative_target: 0.8
+
+# Pointers given by KCC advisors in the historical answers (counts measured
+# on the clean master). Verify against the official portals before a demo.
+pointers:
+  kcc_helpline: "1800-180-1551"
+  pm_kisan_helpline: "155261"
+  crop_insurance_helpline: "14447"

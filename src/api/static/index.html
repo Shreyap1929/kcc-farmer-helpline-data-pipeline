@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KCC Triage Console</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232f6b3a' d='M5 21c0-9 5-15 15-17-1 10-6 15-13 15l-2 2z'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f5f0;
+    --surface: #ffffff;
+    --surface-2: #f1f0ea;
+    --border: #e2e0d6;
+    --text: #1f2620;
+    --muted: #5f675f;
+    --faint: #8a918a;
+    --brand: #2f6b3a;
+    --brand-ink: #ffffff;
+    --focus: #2f6b3a55;
+    --shadow: 0 1px 2px rgba(30, 40, 30, .06), 0 4px 16px rgba(30, 40, 30, .05);
+
+    --answer: #237a45;   --answer-bg: #e6f4ea;
+    --clarify: #9a6408;  --clarify-bg: #fdf3dc;
+    --scheme: #2459a6;   --scheme-bg: #e5eefb;
+    --live: #0d6f69;     --live-bg: #def4f1;
+    --expert: #6b35c9;   --expert-bg: #efe8fb;
+    --oos: #5b6574;      --oos-bg: #eceef2;
+    --warn: #a4471b;     --warn-bg: #fbece4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121612;
+      --surface: #1a201b;
+      --surface-2: #222a23;
+      --border: #2f382f;
+      --text: #e7ece6;
+      --muted: #a6b0a5;
+      --faint: #7d877c;
+      --brand: #6dbb7c;
+      --brand-ink: #0f1a11;
+      --focus: #6dbb7c55;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+
+      --answer: #6fd393;   --answer-bg: #1d3325;
+      --clarify: #f1c062;  --clarify-bg: #3a2f17;
+      --scheme: #8db8f5;   --scheme-bg: #1c2a40;
+      --live: #64d4c9;     --live-bg: #16322f;
+      --expert: #bd9bf5;   --expert-bg: #2c2140;
+      --oos: #aab3c0;      --oos-bg: #262b33;
+      --warn: #f2a37c;     --warn-bg: #3a2318;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, "Nirmala UI", "Noto Sans Devanagari",
+          "Mangal", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .deva { font-family: "Nirmala UI", "Noto Sans Devanagari", "Mangal", "Segoe UI", sans-serif; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 28px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand svg { width: 30px; height: 30px; flex: none; }
+  .brand h1 { font-size: 17px; margin: 0; letter-spacing: -.01em; }
+  .brand p { margin: 0; font-size: 12.5px; color: var(--muted); }
+  .status {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; background: var(--surface-2);
+    white-space: nowrap;
+  }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+  .status.ok .dot { background: var(--answer); box-shadow: 0 0 0 3px var(--answer-bg); }
+  .status.err .dot { background: var(--warn); }
+
+  main {
+    max-width: 1320px; margin: 0 auto; padding: 24px 28px 40px;
+    /* minmax(0, ...) so long example chips ellipsize instead of widening the column */
+    display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); gap: 24px; align-items: start;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow);
+  }
+  .card > .hd { padding: 16px 20px 0; }
+  .card > .bd { padding: 16px 20px 20px; }
+  .eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 0 0 4px; }
+  h2 { font-size: 16px; margin: 0; }
+
+  aside.caller { position: sticky; top: 84px; }
+  label.fl { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  textarea, select {
+    width: 100%; font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; outline: none;
+  }
+  textarea { min-height: 96px; resize: vertical; font-size: 15.5px; }
+  textarea:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--focus); }
+  .row3 { display: grid; grid-template-columns: 1.25fr 1fr .8fr; gap: 10px; margin-top: 12px; }
+  .hint { font-size: 12px; color: var(--faint); margin-top: 6px; }
+  .actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+  button.primary {
+    font: inherit; font-weight: 600; border: 0; border-radius: 10px; padding: 10px 18px; cursor: pointer;
+    background: var(--brand); color: var(--brand-ink); display: inline-flex; align-items: center; gap: 8px;
+  }
+  button.primary:disabled { opacity: .6; cursor: progress; }
+  button.primary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  kbd { font: 11px ui-monospace, Consolas, monospace; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; color: var(--muted); }
+
+  .examples { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .ex-group { margin-top: 10px; }
+  .ex-group .gl { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit; font-size: 12.5px; text-align: left; cursor: pointer; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 9px;
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .chip:hover { border-color: var(--brand); }
+  .chip .lang { font-size: 10.5px; font-weight: 700; color: var(--faint); margin-right: 5px; text-transform: uppercase; }
+
+  .swatch { width: 9px; height: 9px; border-radius: 3px; display: inline-block; flex: none; }
+
+  /* Decision */
+  .empty { padding: 56px 24px; text-align: center; color: var(--muted); }
+  .empty svg { width: 56px; height: 56px; opacity: .55; }
+  .empty h3 { margin: 12px 0 4px; font-size: 16px; color: var(--text); }
+  .routes-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 24px auto 0; max-width: 720px; text-align: left; }
+  .routes-legend div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; background: var(--surface); }
+  .routes-legend b { display: flex; align-items: center; gap: 7px; font-size: 13px; margin-bottom: 2px; }
+
+  .banner {
+    display: flex; align-items: flex-start; gap: 14px; padding: 18px 20px; border-radius: 14px 14px 0 0;
+    background: var(--rbg); border-bottom: 1px solid var(--border);
+  }
+  .banner .ic { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--rc); color: var(--surface); flex: none; }
+  .banner .ic svg { width: 22px; height: 22px; }
+  .banner .rt { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--rc); text-transform: uppercase; }
+  .banner h2 { font-size: 20px; margin: 1px 0 2px; }
+  .banner p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .banner .lat { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  section.blk { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  section.blk:last-child { border-bottom: 0; }
+  .reply {
+    font-size: 16px; line-height: 1.65; background: var(--surface-2); border-left: 4px solid var(--rc);
+    border-radius: 8px; padding: 12px 16px; margin-top: 8px; white-space: pre-wrap;
+  }
+  .reasons { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .reason { display: flex; gap: 10px; align-items: baseline; font-size: 14px; }
+  .code { font: 600 11.5px ui-monospace, Consolas, monospace; padding: 2px 7px; border-radius: 6px; background: var(--rbg); color: var(--rc); white-space: nowrap; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+  .stat .k { font-size: 11.5px; color: var(--faint); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .stat .v { font-size: 14.5px; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+  .stat .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .bar { height: 5px; background: var(--surface-2); border-radius: 99px; margin-top: 7px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--brand); border-radius: 99px; }
+
+  .draft { background: var(--warn-bg); border: 1px dashed var(--warn); border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
+  .draft .lbl { font-size: 12px; font-weight: 700; color: var(--warn); margin-bottom: 4px; }
+
+  .src { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+  .src.used { border-color: var(--rc); box-shadow: 0 0 0 1px var(--rc) inset; }
+  .src .q { font-weight: 600; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
+  .src .q .n { color: var(--faint); font-weight: 600; }
+  .src .a { margin-top: 6px; font-size: 14px; line-height: 1.6; color: var(--text); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .src.open .a { -webkit-line-clamp: unset; }
+  .src .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .src .meta b { color: var(--text); font-weight: 600; }
+  .tag { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; }
+  .tag.chem { background: var(--warn-bg); color: var(--warn); }
+  .tag.used { background: var(--rbg); color: var(--rc); }
+  .more { font: inherit; font-size: 12px; color: var(--brand); background: none; border: 0; padding: 0; cursor: pointer; margin-top: 4px; }
+
+  .error { margin: 20px; padding: 14px 16px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); }
+  footer.note { max-width: 1320px; margin: 0 auto; padding: 0 28px 32px; font-size: 12px; color: var(--faint); }
+
+  .spin { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .7s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } }
+
+  @media (max-width: 960px) {
+    main { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+    aside.caller { position: static; }
+    header.top { padding: 12px 16px; }
+    .routes-legend, .grid3 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .row3, .routes-legend, .grid3 { grid-template-columns: 1fr; }
+    .status .txt { display: none; }
+    .banner .lat { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--brand)"/><path d="M9 24c0-8 4.5-13 14-14.5C22 18 17.5 22 11 22l-2 2z" fill="var(--brand-ink)"/><path d="M11 22c3-4 6-6.5 9.5-8.5" stroke="var(--brand)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+    <div>
+      <h1>KCC Triage Console</h1>
+      <p>Kisan Call Centre &middot; Maharashtra &middot; decision support</p>
+    </div>
+  </div>
+  <span id="status" class="status"><span class="dot"></span><span class="txt">Connecting&hellip;</span></span>
+</header>
+
+<main>
+  <aside class="caller card">
+    <div class="hd"><p class="eyebrow">Incoming call</p><h2>Farmer's question</h2></div>
+    <div class="bd">
+      <form id="form" autocomplete="off">
+        <label class="fl" for="text">Question <span style="font-weight:400;color:var(--faint)">(Marathi, Hindi or English)</span></label>
+        <textarea id="text" class="deva" placeholder="उदा. कापसावर पांढरी माशी आली आहे&#10;e.g. Which wheat varieties are recommended?" required></textarea>
+        <div class="row3">
+          <div><label class="fl" for="district">District</label><select id="district"><option value="">Not given</option></select></div>
+          <div><label class="fl" for="crop">Crop on profile</label><select id="crop"><option value="">Not given</option></select></div>
+          <div><label class="fl" for="month">Month</label><select id="month"></select></div>
+        </div>
+        <p class="hint">District and month come from the caller profile; the crop is optional.</p>
+        <div class="actions">
+          <button class="primary" id="go" type="submit">Triage call</button>
+          <span class="hint" style="margin:0"><kbd>Ctrl</kbd> + <kbd>Enter</kbd></span>
+        </div>
+      </form>
+      <div class="examples">
+        <p class="eyebrow">Try an example</p>
+        <div id="examples"></div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="card" id="result" aria-live="polite"></section>
+</main>
+
+<footer class="note">
+  Decision support for helpline staff, not agronomic advice. Answers are historical KCC records
+  (Nov 2023 &ndash; Jul 2025) and are shown with their source. Chemical and dose questions always go to an expert;
+  prices, weather and scheme status are pointed to live official sources.
+</footer>
+
+<script>
+const ROUTES = {
+  ANSWER:            { name: "Answered from history", color: "answer",  desc: "A close, low-risk past KCC answer, shown with its source.",
+                       icon: '<path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  CLARIFY:           { name: "Ask a follow-up", color: "clarify", desc: "Not enough detail to route safely yet.",
+                       icon: '<path d="M9.2 9a3 3 0 115 2.2c-1 .8-2.2 1.4-2.2 3M12 18h.01" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/>' },
+  SCHEME_POINTER:    { name: "Scheme pointer", color: "scheme", desc: "Status and dates change; point to the official source.",
+                       icon: '<path d="M4 9h16M6 9v8m4-8v8m4-8v8m4-8v8M3 19h18M12 4l8 4H4z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/>' },
+  LIVE_DATA_POINTER: { name: "Live-data pointer", color: "live", desc: "Prices and weather are only true on the day they are given.",
+                       icon: '<path d="M4 18l5-6 4 3 7-8M15 7h5v5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+  EXPERT_REVIEW:     { name: "Expert review", color: "expert", desc: "Risky or uncertain: queued for an agronomist with a draft attached.",
+                       icon: '<circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>' },
+  OUT_OF_SCOPE:      { name: "Out of scope", color: "oos", desc: "Not a farming question for this helpline.",
+                       icon: '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" fill="none"/><path d="M6.5 17.5l11-11" stroke="currentColor" stroke-width="2"/>' },
+};
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (x) => `${Math.round((x || 0) * 100)}%`;
+const hasDeva = (s) => /[ऀ-ॿ]/.test(s || "");
+const vars = (route) => { const c = ROUTES[route].color; return `--rc: var(--${c}); --rbg: var(--${c}-bg);`; };
+
+function setStatus(ok, text) {
+  const el = $("#status");
+  el.className = "status " + (ok ? "ok" : "err");
+  el.querySelector(".txt").textContent = text;
+}
+
+function emptyState() {
+  $("#result").innerHTML = `
+    <div class="empty">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v10H8l-4 4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <h3>Route a question to see the gate's decision</h3>
+      <div>Each call ends in exactly one of six routes, with the reasons and sources behind it.</div>
+      <div class="routes-legend">
+        ${Object.entries(ROUTES).map(([k, r]) => `
+          <div style="${vars(k)}"><b><span class="swatch" style="background:var(--rc)"></span>${r.name}</b>${r.desc}</div>`).join("")}
+      </div>
+    </div>`;
+}
+
+function renderExamples(examples) {
+  const order = ["ANSWER", "EXPERT_REVIEW", "LIVE_DATA_POINTER", "SCHEME_POINTER", "CLARIFY", "OUT_OF_SCOPE"];
+  const groups = {};
+  // Grouped by the route the engine actually gives today, so a click never surprises.
+  examples.forEach((e) => (groups[e.route || e.expected] ||= []).push(e));
+  $("#examples").innerHTML = order.filter((k) => groups[k]).map((k) => `
+    <div class="ex-group" style="${vars(k)}">
+      <div class="gl"><span class="swatch" style="background:var(--rc)"></span>${ROUTES[k].name}</div>
+      <div class="chips">${groups[k].slice(0, 4).map((e) => `
+        <button type="button" class="chip ${hasDeva(e.text) ? "deva" : ""}" title="${esc(e.text)}"
+          data-text="${esc(e.text)}" data-crop="${esc(e.crop || "")}"><span class="lang">${esc(e.lang)}</span>${esc(e.text)}</button>`).join("")}
+      </div>
+    </div>`).join("");
+  document.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => {
+    $("#text").value = b.dataset.text;
+    $("#crop").value = b.dataset.crop;
+    run();
+  }));
+}
+
+function sourceCard(h, i, usedId) {
+  const used = usedId && h.kcc_call_id === usedId;
+  return `
+    <div class="src ${used ? "used" : ""}">
+      <div class="q"><span class="n">${i + 1}</span><span>${esc(h.question)}</span></div>
+      <div class="a deva">${esc(h.answer)}</div>
+      <button type="button" class="more" hidden>Show full answer</button>
+      <div class="meta">
+        <span>Similarity <b>${h.similarity.toFixed(3)}</b></span>
+        <span><b>${esc(h.created_on)}</b></span>
+        <span>${esc(h.district || "-")}</span>
+        <span>${esc(h.crop || "-")}</span>
+        <span>Asked <b>${h.times_asked}&times;</b> &middot; ${h.distinct_answers} answer variant${h.distinct_answers === 1 ? "" : "s"}</span>
+        ${h.chemical ? `<span class="tag chem">Chemical advice</span>` : ""}
+        ${used ? `<span class="tag used">Used</span>` : ""}
+      </div>
+    </div>`;
+}
+
+function render(r) {
+  const route = ROUTES[r.route];
+  const qt = r.prediction.query_type, cp = r.prediction.crop;
+  const usedId = r.answer_source ? r.answer_source.kcc_call_id : null;
+  const cropSrc = { profile: "from caller profile", question: "named in the question", classifier: "predicted by classifier" }[r.crop_source] || "";
+  const replyIsSource = r.route === "ANSWER" && r.answer_source;
+
+  $("#result").innerHTML = `
+    <div style="${vars(r.route)}">
+      <div class="banner">
+        <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">${route.icon}</svg></div>
+        <div>
+          <div class="rt">${r.route.replaceAll("_", " ")}</div>
+          <h2>${route.name}</h2>
+          <p>${route.desc}</p>
+        </div>
+        <div class="lat">${r.latency_ms} ms</div>
+      </div>
+
+      <section class="blk">
+        <p class="eyebrow">${replyIsSource ? "Reply to farmer &middot; historical KCC answer" : "Reply to farmer"}</p>
+        <div class="reply ${hasDeva(r.reply) ? "deva" : ""}">${esc(r.reply)}</div>
+        ${replyIsSource ? `<p class="hint">Source: KCC call ${esc(r.answer_source.kcc_call_id)}, ${esc(r.answer_source.created_on)}, ${esc(r.answer_source.district)}. ${r.grounded ? "All numbers in the reply appear in the source." : "<b>Grounding check failed.</b>"}</p>` : ""}
+      </section>
+
+      <section class="blk">
+        <p class="eyebrow">Why this route</p>
+        <div class="reasons">${r.reasons.map((x) => `<div class="reason"><span class="code">${esc(x.code)}</span><span class="${hasDeva(x.detail) ? "deva" : ""}">${esc(x.detail)}</span></div>`).join("")}</div>
+      </section>
+
+      <section class="blk">
+        <p class="eyebrow">What the system understood</p>
+        <div class="grid3">
+          <div class="stat"><div class="k">Query type</div><div class="v">${esc(qt.label)}</div>
+            <div class="bar"><i style="width:${pct(qt.confidence)}"></i></div>
+            <div class="s">${pct(qt.confidence)} &middot; next: ${qt.alternatives.map((a) => `${esc(a.label)} ${pct(a.confidence)}`).join(", ")}</div></div>
+          <div class="stat"><div class="k">Crop</div><div class="v">${esc(r.crop || "Unknown")}</div>
+            <div class="s">${r.crop ? esc(cropSrc) : `classifier guess ${esc(cp.label)} at ${pct(cp.confidence)} (too low)`}</div></div>
+          <div class="stat"><div class="k">Context</div><div class="v">${esc(r.query.season || "Season unknown")}</div>
+            <div class="s">${esc(r.query.district || "No district")}${r.query.month ? " &middot; " + MONTHS[r.query.month - 1] : ""}</div></div>
+        </div>
+        ${r.query.retrieval_text && r.query.retrieval_text !== r.query.text ? `
+        <p class="hint">Searched the English records as: <span class="deva">${esc(r.query.retrieval_text)}</span></p>` : ""}
+      </section>
+
+      ${r.draft_for_expert ? `
+      <section class="blk">
+        <p class="eyebrow">Expert queue</p>
+        <div class="draft"><div class="lbl">Draft for the expert &middot; historical answer, not sent to the farmer</div>
+          <div class="deva">${esc(r.draft_for_expert)}</div></div>
+      </section>` : ""}
+
+      <section class="blk">
+        <p class="eyebrow">Similar past calls (${r.sources.length})</p>
+        ${r.sources.length ? r.sources.map((h, i) => sourceCard(h, i, usedId)).join("") : `<p class="hint">No similar calls.</p>`}
+      </section>
+    </div>`;
+
+  document.querySelectorAll(".src .more").forEach((b) => {
+    const a = b.closest(".src").querySelector(".a");
+    b.hidden = a.scrollHeight <= a.clientHeight + 2;  // only offer it when the text is clamped
+  });
+  document.querySelectorAll(".src .more").forEach((b) => b.addEventListener("click", () => {
+    const card = b.closest(".src");
+    card.classList.toggle("open");
+    b.textContent = card.classList.contains("open") ? "Show less" : "Show full answer";
+  }));
+}
+
+async function run() {
+  const text = $("#text").value.trim();
+  if (!text) { $("#text").focus(); return; }
+  const btn = $("#go");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin"></span>Routing&hellip;`;
+  try {
+    const res = await fetch("/api/triage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, district: $("#district").value || null, crop: $("#crop").value || null, month: Number($("#month").value) || null }),
+    });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    render(await res.json());
+  } catch (err) {
+    $("#result").innerHTML = `<div class="error">Could not triage this call: ${esc(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Triage call";
+  }
+}
+
+async function init() {
+  $("#month").innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join("");
+  $("#month").value = String(new Date().getMonth() + 1);
+  emptyState();
+  try {
+    const meta = await (await fetch("/api/meta")).json();
+    $("#district").insertAdjacentHTML("beforeend", meta.districts.map((d) => `<option value="${esc(d.value)}">${esc(d.label)}</option>`).join(""));
+    $("#crop").insertAdjacentHTML("beforeend", meta.crops.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join(""));
+    renderExamples(meta.examples);
+    setStatus(true, `Ready · ${meta.kb_records.toLocaleString()} past answers`);
+  } catch (err) {
+    setStatus(false, "API unavailable");
+  }
+}
+
+$("#form").addEventListener("submit", (e) => { e.preventDefault(); run(); });
+$("#text").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); });
+init();
+</script>
+</body>
+</html>

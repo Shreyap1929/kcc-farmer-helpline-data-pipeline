@@ -1,8 +1,56 @@
-# KCC Farmer Helpline Assistant - Data Cleaning (Stage 1)
+# KCC Farmer Helpline Assistant
 
-This repository contains the end-to-end data cleaning pipeline for the **Kisan Call Centre (KCC)** Maharashtra dataset (`2023-11` to `2025-07`), standardising 361,181 caller records in accordance with the project Source of Truth and Stage 1 specification.
+A triage assistant for a Kisan Call Centre (KCC) style helpline, built on 361,181 real
+Maharashtra KCC records (`2023-11` to `2025-07`). A farmer's question goes in; the system
+decides whether to answer from a past expert answer (with its source), ask a follow-up,
+point to a live or official source, or hand the case to a human expert.
+
+| Stage | What | Status |
+|---|---|---|
+| 1 | Data cleaning pipeline ([spec](docs/kcc_data_cleaning_stage1.md)) | Done |
+| 2 | Triage core: content policy, classifiers, multilingual retrieval, routing gate, API + console ([design](docs/stage2_triage_core.md)) | Done |
+| 3 | Speech in/out, LLM reply writing, LangGraph expert queue, golden evaluation set | Next |
+
+Progress log: [STATUS.md](STATUS.md).
 
 ---
+
+## Stage 2 - Triage core
+
+```bash
+pip install -r requirements.txt
+
+# Build views, embeddings, classifiers, calibration and evaluation (~25 min on CPU, first run).
+# Needs the Stage 1 master at data/clean/kcc_mh_clean.parquet.
+python -m src.triage.build
+
+# Serve the API and the operator console at http://localhost:8000
+uvicorn src.api.app:app --port 8000
+
+# Tests (unit tests need no data; artifact tests skip if nothing is built)
+pytest -v
+```
+
+How it routes a call:
+
+```text
+question + caller profile ─► policy signals (en/mr/hi) ─┐
+                         ─► crop named in question  ────┤
+                         ─► e5 embedding ─► classifier ─┼─► gate ─► ANSWER | CLARIFY | SCHEME_POINTER
+                                        └─► retrieval ──┘          LIVE_DATA_POINTER | EXPERT_REVIEW | OUT_OF_SCOPE
+```
+
+Results (generated, never hand-edited): [dataset views](reports/stage2/views_report.md) ·
+[embedding model choice](reports/stage2/embedding_model_probe.md) ·
+[classifiers](reports/stage2/classifier_report.md) · [gate evaluation](reports/stage2/gate_report.md)
+
+Safety rules enforced in code and tests: chemical/dose questions and answers are never
+answered automatically; weather, mandi prices and scheme status are never answered from
+history; every automatic answer shows its KCC call id and date.
+
+---
+
+## Stage 1 - Data cleaning
 
 ## 1. Quick Start
 
@@ -26,23 +74,33 @@ pytest -v tests/test_clean.py
 clean_data/
 ├── config/
 │   ├── season_map.yaml          # Mapping of month numbers to agricultural seasons (kharif, rabi, summer)
-│   └── district_display.csv     # Mapping from dataset district spellings to display names
+│   ├── district_display.csv     # Mapping from dataset district spellings to display names
+│   ├── triage.yaml              # Stage 2: split months, model, retrieval boosts, gate settings
+│   ├── crop_lexicon.yaml        # Stage 2: crop names in English / Marathi / Hindi / romanised
+│   └── gate_probes.csv          # Stage 2: hand-written probe questions with expected routes
 ├── data/
 │   ├── raw/                     # Ingested unzipped raw CSVs (read-only, gitignored)
-│   └── clean/                   # Cleaned output files (gitignored)
-│       ├── kcc_mh_clean.parquet # MASTER Parquet (361,181 rows, 61 columns)
-│       ├── kcc_mh_clean.csv     # MASTER UTF-8 CSV (361,181 rows)
-│       └── monthly/             # 20 monthly partitions (kcc_mh_2023_11.csv to kcc_mh_2025_07.csv)
+│   ├── clean/                   # Cleaned output files (gitignored)
+│   │   ├── kcc_mh_clean.parquet # MASTER Parquet (361,181 rows, 61 columns)
+│   │   ├── kcc_mh_clean.csv     # MASTER UTF-8 CSV (361,181 rows)
+│   │   └── monthly/             # 20 monthly partitions (kcc_mh_2023_11.csv to kcc_mh_2025_07.csv)
+│   ├── views/                   # Stage 2: policy-tagged corpus + knowledge base (gitignored)
+│   └── artifacts/               # Stage 2: embeddings, classifiers, thresholds (gitignored)
 ├── docs/
 │   ├── kcc_source_of_truth.md   # Project source of truth
-│   └── kcc_data_cleaning_stage1.md # Stage 1 detailed specification
+│   ├── kcc_data_cleaning_stage1.md # Stage 1 detailed specification
+│   └── stage2_triage_core.md    # Stage 2 design
 ├── reports/
 │   ├── cleaning_report.md       # Full executive cleaning summary & metrics
 │   ├── file_manifest.csv        # Input file manifest with MD5 hashes and status
 │   ├── value_counts/            # Distributions for QueryType, Category, Crop, District, Language
-│   └── samples/                 # 50-row audit samples per flag and language for human review
+│   ├── samples/                 # 50-row audit samples per flag and language for human review
+│   └── stage2/                  # Stage 2 generated reports and figures
 ├── src/
 │   ├── __init__.py
+│   ├── api/                     # Stage 2: FastAPI app + static operator console
+│   ├── triage/                  # Stage 2: policy, crops, views, embeddings, classifier,
+│   │                            #          retrieval, gate, engine, evaluate, build
 │   └── cleaning/
 │       ├── __init__.py
 │       ├── constants.py         # Schema definitions, regexes, stopword sets
@@ -58,7 +116,11 @@ clean_data/
 │       ├── run.py               # CLI runner
 │       └── text_utils.py        # NFC normalization, whitespace collapsing & core query extraction
 └── tests/
-    └── test_clean.py            # Comprehensive 11-test acceptance suite
+    ├── test_clean.py            # Comprehensive 11-test acceptance suite
+    ├── test_policy.py           # Stage 2: policy detectors and crop detection
+    ├── test_gate.py             # Stage 2: every gate route + safety invariant
+    ├── test_api.py              # Stage 2: API contract with a fake engine
+    └── test_triage_artifacts.py # Stage 2: split, KB and leakage invariants on built data
 ```
 
 ---

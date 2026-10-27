@@ -1,0 +1,1037 @@
+{
+  "thresholds": {
+    "answer_min_similarity": 0.9825,
+    "answer_route_enabled": true,
+    "out_of_scope_max_similarity": 0.851,
+    "calibrated_on": "valid",
+    "low_risk_pool_valid": 3029,
+    "pool_close_rate_answer_all": 0.20006602839220866,
+    "advisor_agreement_valid": {
+      "n": 1245,
+      "close_rate": 0.3783132530120482,
+      "mean_closeness": 0.46550160754914915
+    },
+    "answer_target_close_rate": 0.3026506024096386,
+    "out_of_scope_reference_rows": 9930
+  },
+  "test_realistic": {
+    "rows": 40000,
+    "route_share": {
+      "ANSWER": 0.0278,
+      "CLARIFY": 0.0236,
+      "SCHEME_POINTER": 0.2746,
+      "LIVE_DATA_POINTER": 0.431,
+      "EXPERT_REVIEW": 0.2429,
+      "OUT_OF_SCOPE": 0.0001
+    },
+    "auto_answer_coverage": 0.0278,
+    "answered_close_rate": 0.2716,
+    "answered_mean_closeness": 0.3653,
+    "low_risk_pool_rows": 2687,
+    "low_risk_pool_close_rate_answer_all": 0.1448,
+    "advisor_agreement_on_answered": {
+      "n": 830,
+      "close_rate": 0.31204819277108437,
+      "mean_closeness": 0.39173181928220946
+    },
+    "served_chemical_answers": 0,
+    "answered_where_real_answer_was_chemical": 0.0585,
+    "time_sensitive_rows": 23402,
+    "time_sensitive_to_pointer": 0.9977,
+    "time_sensitive_answered": 0.0001,
+    "chemical_rows": 8170,
+    "chemical_to_expert_or_clarify": 0.99,
+    "chemical_answered": 0.008,
+    "scheme_rows": 11124,
+    "scheme_to_scheme_pointer": 0.9423,
+    "top_reasons": {
+      "LIVE_WEATHER_INTENT": 15568,
+      "SCHEME_INTENT": 10755,
+      "DOSE_QUESTION": 4796,
+      "HIGH_RISK_TOPIC": 2053,
+      "LIVE_MARKET_INTENT": 1625,
+      "LOW_CONFIDENCE": 1575,
+      "CHEMICAL_ANSWER": 1281,
+      "RETRIEVED_LOW_RISK": 1112,
+      "CROP_MISSING": 933,
+      "SCHEME_TYPE_PREDICTED": 228
+    }
+  },
+  "test_hard": {
+    "rows": 12266,
+    "route_share": {
+      "ANSWER": 0.023,
+      "CLARIFY": 0.0618,
+      "SCHEME_POINTER": 0.348,
+      "LIVE_DATA_POINTER": 0.0587,
+      "EXPERT_REVIEW": 0.5083,
+      "OUT_OF_SCOPE": 0.0002
+    },
+    "auto_answer_coverage": 0.023,
+    "answered_close_rate": 0.1312,
+    "answered_mean_closeness": 0.2636,
+    "low_risk_pool_rows": 1805,
+    "low_risk_pool_close_rate_answer_all": 0.0659,
+    "advisor_agreement_on_answered": {
+      "n": 0,
+      "close_rate": null,
+      "mean_closeness": null
+    },
+    "served_chemical_answers": 0,
+    "answered_where_real_answer_was_chemical": 0.1028,
+    "time_sensitive_rows": 2938,
+    "time_sensitive_to_pointer": 0.9874,
+    "time_sensitive_answered": 0.0,
+    "chemical_rows": 4732,
+    "chemical_to_expert_or_clarify": 0.992,
+    "chemical_answered": 0.0061,
+    "scheme_rows": 4483,
+    "scheme_to_scheme_pointer": 0.8994,
+    "top_reasons": {
+      "SCHEME_INTENT": 4149,
+      "DOSE_QUESTION": 2698,
+      "LOW_CONFIDENCE": 1523,
+      "HIGH_RISK_TOPIC": 1011,
+      "CHEMICAL_ANSWER": 991,
+      "CROP_MISSING": 757,
+      "LIVE_MARKET_INTENT": 641,
+      "RETRIEVED_LOW_RISK": 282,
+      "SCHEME_TYPE_PREDICTED": 119,
+      "LIVE_WEATHER_INTENT": 44
+    }
+  },
+  "probes": [
+    {
+      "text": "MARKET RATE OF ONION ?",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "free-text market question missed by Stage 1 template flag",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_MARKET_INTENT",
+      "top_similarity": 0.9421,
+      "pred_type": "Market Information"
+    },
+    {
+      "text": "What is the cotton price in Akola mandi today",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_MARKET_INTENT",
+      "top_similarity": 0.8644,
+      "pred_type": "Market Information"
+    },
+    {
+      "text": "कांद्याचा आजचा बाजारभाव काय आहे",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi market price",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_MARKET_INTENT",
+      "top_similarity": 0.8466,
+      "pred_type": "Market Information"
+    },
+    {
+      "text": "सोयाबीनला आज काय भाव आहे",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_MARKET_INTENT",
+      "top_similarity": 0.874,
+      "pred_type": "Market Information"
+    },
+    {
+      "text": "प्याज का आज का भाव क्या है",
+      "lang": "hi",
+      "profile_crop": "",
+      "note": "Hindi market price",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_MARKET_INTENT",
+      "top_similarity": 0.8739,
+      "pred_type": "Market Information"
+    },
+    {
+      "text": "Weather forecast for next week",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_WEATHER_INTENT",
+      "top_similarity": 0.8292,
+      "pred_type": "Weather"
+    },
+    {
+      "text": "उद्या पाऊस पडेल का",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi rain tomorrow",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_WEATHER_INTENT",
+      "top_similarity": 0.8349,
+      "pred_type": "Weather"
+    },
+    {
+      "text": "अगले हफ्ते मौसम कैसा रहेगा",
+      "lang": "hi",
+      "profile_crop": "",
+      "note": "Hindi weather",
+      "expected": "LIVE_DATA_POINTER",
+      "got": "LIVE_DATA_POINTER",
+      "pass": true,
+      "reason": "LIVE_WEATHER_INTENT",
+      "top_similarity": 0.8391,
+      "pred_type": "Weather"
+    },
+    {
+      "text": "Status of installment in PM Kisan Samman Nidhi Yojana",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "",
+      "expected": "SCHEME_POINTER",
+      "got": "SCHEME_POINTER",
+      "pass": true,
+      "reason": "SCHEME_INTENT",
+      "top_similarity": 0.9515,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "पीएम किसान योजनेचा पुढचा हप्ता कधी येणार",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi installment date",
+      "expected": "SCHEME_POINTER",
+      "got": "SCHEME_POINTER",
+      "pass": true,
+      "reason": "SCHEME_INTENT",
+      "top_similarity": 0.8558,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "Crop insurance helpline number",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "",
+      "expected": "SCHEME_POINTER",
+      "got": "SCHEME_POINTER",
+      "pass": true,
+      "reason": "SCHEME_INTENT",
+      "top_similarity": 0.9893,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "पीक विमा नुकसान भरपाई कशी मिळेल",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi crop insurance claim",
+      "expected": "SCHEME_POINTER",
+      "got": "SCHEME_POINTER",
+      "pass": true,
+      "reason": "SCHEME_INTENT",
+      "top_similarity": 0.8638,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "पीएम किसान की किस्त कब आएगी",
+      "lang": "hi",
+      "profile_crop": "",
+      "note": "Hindi installment",
+      "expected": "SCHEME_POINTER",
+      "got": "SCHEME_POINTER",
+      "pass": true,
+      "reason": "SCHEME_INTENT",
+      "top_similarity": 0.8523,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "Fertilizer dose for sugarcane",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "dose question - always expert",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "DOSE_QUESTION",
+      "top_similarity": 0.9926,
+      "pred_type": "Fertilizer Use and Availability"
+    },
+    {
+      "text": "Coragen spraying dose for brinjal",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "named pesticide + dose",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "DOSE_QUESTION",
+      "top_similarity": 0.9861,
+      "pred_type": "Nutrient Management"
+    },
+    {
+      "text": "Attack of whitefly on cotton crop",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "pest question; answers are chemical",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "HIGH_RISK_TOPIC",
+      "top_similarity": 0.9812,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "How to control pink bollworm in cotton",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "HIGH_RISK_TOPIC",
+      "top_similarity": 0.9693,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "कापसावर पांढरी माशी आली आहे काय फवारणी करावी",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi spray question",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "DOSE_QUESTION",
+      "top_similarity": 0.851,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "सोयाबीन मध्ये तणनाशक कोणते वापरावे",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi herbicide question",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "DOSE_QUESTION",
+      "top_similarity": 0.8576,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "मक्के में फॉल आर्मीवर्म का नियंत्रण कैसे करें",
+      "lang": "hi",
+      "profile_crop": "",
+      "note": "Hindi pest control",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "CHEMICAL_ANSWER",
+      "top_similarity": 0.8717,
+      "pred_type": "Other"
+    },
+    {
+      "text": "Weed management in soybean",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "herbicide answers",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "HIGH_RISK_TOPIC",
+      "top_similarity": 0.9831,
+      "pred_type": "Weed Management"
+    },
+    {
+      "text": "SOYBEAN VARIETIES ?",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "Exact wording of a frequent past KCC question.",
+      "expected": "ANSWER",
+      "got": "ANSWER",
+      "pass": true,
+      "reason": "RETRIEVED_LOW_RISK",
+      "top_similarity": 1.0,
+      "pred_type": "Varieties"
+    },
+    {
+      "text": "SOWING TIME OF GROUNDNUT CROP ?",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "Exact wording of a frequent past KCC question.",
+      "expected": "ANSWER",
+      "got": "ANSWER",
+      "pass": true,
+      "reason": "RETRIEVED_LOW_RISK",
+      "top_similarity": 1.0,
+      "pred_type": "Sowing Time and Weather"
+    },
+    {
+      "text": "Varieties of wheat",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "Paraphrase of a frequent question; sits right at the calibrated answer threshold, so it can fail safe to an expert.",
+      "expected": "ANSWER",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.9804,
+      "pred_type": "Varieties"
+    },
+    {
+      "text": "Sowing time of maize",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "Fails safe: best match is below the conservative calibrated answer threshold.",
+      "expected": "ANSWER",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.9584,
+      "pred_type": "Sowing Time and Weather"
+    },
+    {
+      "text": "Contact number of Mahatma Phule Krishi Vidyapeeth Rahuri",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "pointer answer",
+      "expected": "ANSWER",
+      "got": "ANSWER",
+      "pass": true,
+      "reason": "RETRIEVED_LOW_RISK",
+      "top_similarity": 0.986,
+      "pred_type": "Other"
+    },
+    {
+      "text": "गव्हाचे सुधारित वाण कोणते आहेत",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Known gap: Marathi questions score below the English-calibrated answer threshold, so they fail safe to an expert. Fix in Stage 3: translate to English first.",
+      "expected": "ANSWER",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.8712,
+      "pred_type": "Varieties"
+    },
+    {
+      "text": "Seed rate of soybean per acre",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "Seed rate is not a chemical dose. Fails safe: best match is below the conservative calibrated answer threshold.",
+      "expected": "ANSWER",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.9722,
+      "pred_type": "Seeds"
+    },
+    {
+      "text": "My crop has a disease what should I do",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "no crop named",
+      "expected": "CLARIFY",
+      "got": "CLARIFY",
+      "pass": true,
+      "reason": "CROP_MISSING",
+      "top_similarity": 0.8923,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "पिकावर रोग आला आहे",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi - no crop named",
+      "expected": "CLARIFY",
+      "got": "CLARIFY",
+      "pass": true,
+      "reason": "CROP_MISSING",
+      "top_similarity": 0.8665,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "information",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "too vague",
+      "expected": "CLARIFY",
+      "got": "CLARIFY",
+      "pass": true,
+      "reason": "VAGUE",
+      "top_similarity": 0.9433,
+      "pred_type": "Other"
+    },
+    {
+      "text": "माहिती हवी",
+      "lang": "mr",
+      "profile_crop": "",
+      "note": "Marathi - too vague",
+      "expected": "CLARIFY",
+      "got": "CLARIFY",
+      "pass": true,
+      "reason": "VAGUE",
+      "top_similarity": 0.8715,
+      "pred_type": "Other"
+    },
+    {
+      "text": "Leaves are turning yellow",
+      "lang": "en",
+      "profile_crop": "Cotton (Kapas)",
+      "note": "crop comes from the caller profile",
+      "expected": "EXPERT_REVIEW",
+      "got": "EXPERT_REVIEW",
+      "pass": true,
+      "reason": "CHEMICAL_ANSWER",
+      "top_similarity": 0.9173,
+      "pred_type": "Plant Protection"
+    },
+    {
+      "text": "Who won the cricket match yesterday",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "off-topic",
+      "expected": "OUT_OF_SCOPE",
+      "got": "OUT_OF_SCOPE",
+      "pass": true,
+      "reason": "OUT_OF_SCOPE",
+      "top_similarity": 0.8123,
+      "pred_type": "Other"
+    },
+    {
+      "text": "Book a train ticket to Mumbai",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "off-topic. Known gap: similarity alone separates off-topic questions weakly (e5 scores are compressed); fails safe to an expert.",
+      "expected": "OUT_OF_SCOPE",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.8686,
+      "pred_type": "Other"
+    },
+    {
+      "text": "Recharge my mobile phone",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "off-topic. Known gap: similarity alone separates off-topic questions weakly (e5 scores are compressed); fails safe to an expert.",
+      "expected": "OUT_OF_SCOPE",
+      "got": "EXPERT_REVIEW",
+      "pass": false,
+      "reason": "LOW_CONFIDENCE",
+      "top_similarity": 0.8539,
+      "pred_type": "Government Schemes"
+    },
+    {
+      "text": "Tell me a movie song",
+      "lang": "en",
+      "profile_crop": "",
+      "note": "off-topic",
+      "expected": "OUT_OF_SCOPE",
+      "got": "OUT_OF_SCOPE",
+      "pass": true,
+      "reason": "OUT_OF_SCOPE",
+      "top_similarity": 0.8205,
+      "pred_type": "Other"
+    }
+  ],
+  "calibration_curve": [
+    {
+      "threshold": 0.8,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8025,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.805,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8075,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.81,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8125,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.815,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8175,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.82,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8225,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.825,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8275,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.83,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8325,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.835,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8375,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.84,
+      "answered": 3029,
+      "coverage_of_pool": 1.0,
+      "close_rate": 0.20006602839220866
+    },
+    {
+      "threshold": 0.8425,
+      "answered": 3028,
+      "coverage_of_pool": 0.9996698580389568,
+      "close_rate": 0.2001321003963012
+    },
+    {
+      "threshold": 0.845,
+      "answered": 3028,
+      "coverage_of_pool": 0.9996698580389568,
+      "close_rate": 0.2001321003963012
+    },
+    {
+      "threshold": 0.8475,
+      "answered": 3026,
+      "coverage_of_pool": 0.9990095741168703,
+      "close_rate": 0.2002643754130866
+    },
+    {
+      "threshold": 0.85,
+      "answered": 3026,
+      "coverage_of_pool": 0.9990095741168703,
+      "close_rate": 0.2002643754130866
+    },
+    {
+      "threshold": 0.8525,
+      "answered": 3025,
+      "coverage_of_pool": 0.998679432155827,
+      "close_rate": 0.2003305785123967
+    },
+    {
+      "threshold": 0.855,
+      "answered": 3025,
+      "coverage_of_pool": 0.998679432155827,
+      "close_rate": 0.2003305785123967
+    },
+    {
+      "threshold": 0.8575,
+      "answered": 3025,
+      "coverage_of_pool": 0.998679432155827,
+      "close_rate": 0.2003305785123967
+    },
+    {
+      "threshold": 0.86,
+      "answered": 3024,
+      "coverage_of_pool": 0.9983492901947838,
+      "close_rate": 0.2003968253968254
+    },
+    {
+      "threshold": 0.8625,
+      "answered": 3024,
+      "coverage_of_pool": 0.9983492901947838,
+      "close_rate": 0.2003968253968254
+    },
+    {
+      "threshold": 0.865,
+      "answered": 3023,
+      "coverage_of_pool": 0.9980191482337405,
+      "close_rate": 0.20046311610982467
+    },
+    {
+      "threshold": 0.8675,
+      "answered": 3020,
+      "coverage_of_pool": 0.9970287223506108,
+      "close_rate": 0.20066225165562915
+    },
+    {
+      "threshold": 0.87,
+      "answered": 3016,
+      "coverage_of_pool": 0.9957081545064378,
+      "close_rate": 0.20092838196286472
+    },
+    {
+      "threshold": 0.8725,
+      "answered": 3015,
+      "coverage_of_pool": 0.9953780125453945,
+      "close_rate": 0.2009950248756219
+    },
+    {
+      "threshold": 0.875,
+      "answered": 3012,
+      "coverage_of_pool": 0.9943875866622648,
+      "close_rate": 0.20119521912350596
+    },
+    {
+      "threshold": 0.8775,
+      "answered": 3009,
+      "coverage_of_pool": 0.993397160779135,
+      "close_rate": 0.20139581256231306
+    },
+    {
+      "threshold": 0.88,
+      "answered": 3008,
+      "coverage_of_pool": 0.9930670188180918,
+      "close_rate": 0.2014627659574468
+    },
+    {
+      "threshold": 0.8825,
+      "answered": 3005,
+      "coverage_of_pool": 0.9920765929349621,
+      "close_rate": 0.20166389351081532
+    },
+    {
+      "threshold": 0.885,
+      "answered": 2999,
+      "coverage_of_pool": 0.9900957411687026,
+      "close_rate": 0.20206735578526175
+    },
+    {
+      "threshold": 0.8875,
+      "answered": 2995,
+      "coverage_of_pool": 0.9887751733245296,
+      "close_rate": 0.2023372287145242
+    },
+    {
+      "threshold": 0.89,
+      "answered": 2985,
+      "coverage_of_pool": 0.9854737537140971,
+      "close_rate": 0.20301507537688443
+    },
+    {
+      "threshold": 0.8925,
+      "answered": 2979,
+      "coverage_of_pool": 0.9834929019478376,
+      "close_rate": 0.20342396777442096
+    },
+    {
+      "threshold": 0.895,
+      "answered": 2970,
+      "coverage_of_pool": 0.9805216242984484,
+      "close_rate": 0.20404040404040405
+    },
+    {
+      "threshold": 0.8975,
+      "answered": 2953,
+      "coverage_of_pool": 0.9749092109607131,
+      "close_rate": 0.2052150355570606
+    },
+    {
+      "threshold": 0.9,
+      "answered": 2940,
+      "coverage_of_pool": 0.9706173654671508,
+      "close_rate": 0.20612244897959184
+    },
+    {
+      "threshold": 0.9025,
+      "answered": 2925,
+      "coverage_of_pool": 0.9656652360515021,
+      "close_rate": 0.20717948717948717
+    },
+    {
+      "threshold": 0.905,
+      "answered": 2905,
+      "coverage_of_pool": 0.9590623968306372,
+      "close_rate": 0.2082616179001721
+    },
+    {
+      "threshold": 0.9075,
+      "answered": 2884,
+      "coverage_of_pool": 0.952129415648729,
+      "close_rate": 0.20943134535367544
+    },
+    {
+      "threshold": 0.91,
+      "answered": 2865,
+      "coverage_of_pool": 0.9458567183889073,
+      "close_rate": 0.21047120418848167
+    },
+    {
+      "threshold": 0.9125,
+      "answered": 2834,
+      "coverage_of_pool": 0.9356223175965666,
+      "close_rate": 0.21242060691601977
+    },
+    {
+      "threshold": 0.915,
+      "answered": 2814,
+      "coverage_of_pool": 0.9290194783757015,
+      "close_rate": 0.21357498223169866
+    },
+    {
+      "threshold": 0.9175,
+      "answered": 2786,
+      "coverage_of_pool": 0.9197755034664906,
+      "close_rate": 0.21572146446518306
+    },
+    {
+      "threshold": 0.92,
+      "answered": 2753,
+      "coverage_of_pool": 0.9088808187520634,
+      "close_rate": 0.2168543407192154
+    },
+    {
+      "threshold": 0.9225,
+      "answered": 2722,
+      "coverage_of_pool": 0.8986464179597227,
+      "close_rate": 0.21932402645113888
+    },
+    {
+      "threshold": 0.925,
+      "answered": 2697,
+      "coverage_of_pool": 0.8903928689336414,
+      "close_rate": 0.22098628105302187
+    },
+    {
+      "threshold": 0.9275,
+      "answered": 2655,
+      "coverage_of_pool": 0.876526906569825,
+      "close_rate": 0.22448210922787193
+    },
+    {
+      "threshold": 0.93,
+      "answered": 2625,
+      "coverage_of_pool": 0.8666226477385276,
+      "close_rate": 0.22666666666666666
+    },
+    {
+      "threshold": 0.9325,
+      "answered": 2582,
+      "coverage_of_pool": 0.8524265434136679,
+      "close_rate": 0.22966692486444618
+    },
+    {
+      "threshold": 0.935,
+      "answered": 2539,
+      "coverage_of_pool": 0.8382304390888082,
+      "close_rate": 0.23119338322174085
+    },
+    {
+      "threshold": 0.9375,
+      "answered": 2495,
+      "coverage_of_pool": 0.8237041928029053,
+      "close_rate": 0.23446893787575152
+    },
+    {
+      "threshold": 0.94,
+      "answered": 2448,
+      "coverage_of_pool": 0.8081875206338726,
+      "close_rate": 0.2369281045751634
+    },
+    {
+      "threshold": 0.9425,
+      "answered": 2396,
+      "coverage_of_pool": 0.7910201386596236,
+      "close_rate": 0.24081803005008348
+    },
+    {
+      "threshold": 0.945,
+      "answered": 2354,
+      "coverage_of_pool": 0.7771541762958072,
+      "close_rate": 0.24299065420560748
+    },
+    {
+      "threshold": 0.9475,
+      "answered": 2312,
+      "coverage_of_pool": 0.7632882139319908,
+      "close_rate": 0.24524221453287198
+    },
+    {
+      "threshold": 0.95,
+      "answered": 2258,
+      "coverage_of_pool": 0.7454605480356553,
+      "close_rate": 0.24889282550930025
+    },
+    {
+      "threshold": 0.9525,
+      "answered": 2200,
+      "coverage_of_pool": 0.7263123142951469,
+      "close_rate": 0.25227272727272726
+    },
+    {
+      "threshold": 0.955,
+      "answered": 2128,
+      "coverage_of_pool": 0.702542093100033,
+      "close_rate": 0.2565789473684211
+    },
+    {
+      "threshold": 0.9575,
+      "answered": 2072,
+      "coverage_of_pool": 0.6840541432816111,
+      "close_rate": 0.2606177606177606
+    },
+    {
+      "threshold": 0.96,
+      "answered": 2025,
+      "coverage_of_pool": 0.6685374711125784,
+      "close_rate": 0.2641975308641975
+    },
+    {
+      "threshold": 0.9625,
+      "answered": 1972,
+      "coverage_of_pool": 0.6510399471772862,
+      "close_rate": 0.26774847870182555
+    },
+    {
+      "threshold": 0.965,
+      "answered": 1920,
+      "coverage_of_pool": 0.6338725652030373,
+      "close_rate": 0.271875
+    },
+    {
+      "threshold": 0.9675,
+      "answered": 1865,
+      "coverage_of_pool": 0.6157147573456586,
+      "close_rate": 0.27721179624664877
+    },
+    {
+      "threshold": 0.97,
+      "answered": 1818,
+      "coverage_of_pool": 0.600198085176626,
+      "close_rate": 0.28217821782178215
+    },
+    {
+      "threshold": 0.9725,
+      "answered": 1756,
+      "coverage_of_pool": 0.5797292835919445,
+      "close_rate": 0.2864464692482916
+    },
+    {
+      "threshold": 0.975,
+      "answered": 1691,
+      "coverage_of_pool": 0.5582700561241334,
+      "close_rate": 0.29036073329390893
+    },
+    {
+      "threshold": 0.9775,
+      "answered": 1633,
+      "coverage_of_pool": 0.5391218223836249,
+      "close_rate": 0.2969993876301286
+    },
+    {
+      "threshold": 0.98,
+      "answered": 1568,
+      "coverage_of_pool": 0.5176625949158138,
+      "close_rate": 0.30165816326530615
+    },
+    {
+      "threshold": 0.9825,
+      "answered": 1509,
+      "coverage_of_pool": 0.49818421921426215,
+      "close_rate": 0.3081510934393638
+    },
+    {
+      "threshold": 0.985,
+      "answered": 1443,
+      "coverage_of_pool": 0.47639484978540775,
+      "close_rate": 0.3167013167013167
+    },
+    {
+      "threshold": 0.9875,
+      "answered": 1395,
+      "coverage_of_pool": 0.4605480356553318,
+      "close_rate": 0.3225806451612903
+    },
+    {
+      "threshold": 0.99,
+      "answered": 1347,
+      "coverage_of_pool": 0.4447012215252559,
+      "close_rate": 0.32516703786191536
+    },
+    {
+      "threshold": 0.9925,
+      "answered": 1265,
+      "coverage_of_pool": 0.41762958071970946,
+      "close_rate": 0.3312252964426877
+    },
+    {
+      "threshold": 0.995,
+      "answered": 1158,
+      "coverage_of_pool": 0.3823043908880819,
+      "close_rate": 0.3471502590673575
+    },
+    {
+      "threshold": 0.9975,
+      "answered": 1078,
+      "coverage_of_pool": 0.35589303400462197,
+      "close_rate": 0.35714285714285715
+    },
+    {
+      "threshold": 1.0,
+      "answered": 829,
+      "coverage_of_pool": 0.2736876857048531,
+      "close_rate": 0.4077201447527141
+    }
+  ]
+}

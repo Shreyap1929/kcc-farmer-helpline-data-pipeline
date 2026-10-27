@@ -1,0 +1,229 @@
+"""
+Stage 2 dataset views: policy tags, chronological split, knowledge-base
+candidates. The Stage 1 master is read, never modified.
+
+Outputs (data/views/, gitignored):
+- corpus_tagged.parquet   every master row, slim columns + policy tags + split
+- kb_candidates.parquet   rows allowed into the retrieval knowledge base
+
+    python -m src.triage.views
+"""
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+from src.triage.config import load_config, path
+from src.triage.crops import detect_crops
+from src.triage.policy import answer_signals, question_signals
+
+MASTER_COLUMNS = [
+    "KCCCallID", "source_file", "source_row", "created_on", "year_month", "season_derived",
+    "district_clean", "district_display", "crop_clean", "query_type_clean", "sector_clean",
+    "q_clean", "q_core", "q_key", "qa_key", "ans_clean", "ans_digits_ascii", "ans_script",
+    "answer_lang", "flag_q_empty", "flag_ans_empty", "flag_incomplete_call",
+    "flag_weather_template", "flag_mandi_template", "flag_dated_answer", "flag_ans_too_long",
+    "is_valid_qa", "is_first_occurrence",
+]
+
+
+def assign_split(year_month: pd.Series) -> pd.Series:
+    cfg = load_config()["split"]
+    # year_month is "YYYY-MM", so string comparison is chronological.
+    return pd.Series(
+        np.select(
+            [year_month <= cfg["train_end"], year_month <= cfg["valid_end"]],
+            ["train", "valid"],
+            default="test",
+        ),
+        index=year_month.index,
+    )
+
+
+def map_query_type(raw: pd.Series) -> pd.Series:
+    cfg = load_config()["classifier"]
+    mapped = raw.fillna("").replace(cfg["query_type_aliases"])
+    return mapped.where(mapped.isin(cfg["query_types"]), "Other")
+
+
+def map_crop(raw: pd.Series, train_mask: pd.Series) -> pd.Series:
+    """Specific crops with enough training rows keep their label; the rest are dropped."""
+    min_rows = load_config()["classifier"]["crop_min_rows"]
+    counts = raw[train_mask].value_counts()
+    keep = set(counts[counts >= min_rows].index) - {"Others", "Other", ""}
+    keep = {c for c in keep if not c.isdigit()}
+    return raw.where(raw.isin(keep), "")
+
+
+def tag_policy(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply question/answer detectors once per distinct text, then broadcast."""
+    q_unique = df["q_core"].fillna("").unique()
+    q_sig = {q: question_signals(q) for q in q_unique}
+    df["pol_q_live_market"] = df["q_core"].map(lambda q: bool(q_sig[q].live_market))
+    df["pol_q_live_weather"] = df["q_core"].map(lambda q: bool(q_sig[q].live_weather))
+    df["pol_q_scheme"] = df["q_core"].map(lambda q: bool(q_sig[q].scheme))
+    df["pol_q_dose"] = df["q_core"].map(lambda q: bool(q_sig[q].dose))
+    df["pol_q_scheme_timing"] = df["q_core"].map(lambda q: bool(q_sig[q].scheme and q_sig[q].scheme_timing))
+    crop_hits = {q: detect_crops(q) for q in q_unique}
+    df["crop_mentioned"] = df["q_core"].map(lambda q: crop_hits[q][0] if crop_hits[q] else "")
+
+    a_unique = df["ans_digits_ascii"].fillna("").unique()
+    a_sig = {a: answer_signals(a) for a in a_unique}
+    for attr in ["dose_advice", "agrochemical", "chemical", "live_weather", "live_price", "scheme_timebound"]:
+        df[f"pol_ans_{attr}"] = df["ans_digits_ascii"].map(lambda a, k=attr: getattr(a_sig[a], k))
+
+    df["pol_time_sensitive"] = (
+        df["flag_dated_answer"]
+        | df["pol_q_live_market"]
+        | df["pol_q_live_weather"]
+        | df["pol_q_scheme_timing"]
+        | df["pol_ans_live_weather"]
+        | df["pol_ans_live_price"]
+        | df["pol_ans_scheme_timebound"]
+    )
+    df["pol_risk"] = np.select(
+        [df["pol_time_sensitive"], df["pol_ans_chemical"]],
+        ["time_sensitive", "chemical"],
+        default="low",
+    )
+    return df
+
+
+def build_views() -> dict:
+    master = pd.read_parquet(path("master"), columns=MASTER_COLUMNS)
+    master["q_core"] = master["q_core"].fillna("")
+    print(f"Loaded master: {len(master):,} rows")
+
+    master["split"] = assign_split(master["year_month"])
+    master["query_type_model"] = map_query_type(master["query_type_clean"])
+    master["crop_model"] = map_crop(master["crop_clean"].fillna(""), master["split"] == "train")
+    master = tag_policy(master)
+
+    kb_mask = master["is_valid_qa"] & ~master["pol_time_sensitive"] & (master["q_core"].str.len() >= 3)
+    kb = master.loc[kb_mask].drop(columns=["ans_digits_ascii"])
+
+    out = path("views")
+    out.mkdir(parents=True, exist_ok=True)
+    master.drop(columns=["ans_digits_ascii"]).to_parquet(out / "corpus_tagged.parquet", index=False)
+    kb.to_parquet(out / "kb_candidates.parquet", index=False)
+    print(f"Wrote {out / 'corpus_tagged.parquet'} and kb_candidates ({len(kb):,} rows)")
+    return {"master": master, "kb": kb}
+
+
+def views_report(master: pd.DataFrame, kb: pd.DataFrame) -> str:
+    cfg = load_config()["split"]
+    n = len(master)
+    lines = [
+        "# Stage 2 - Dataset views and content policy",
+        "",
+        "Generated by `python -m src.triage.views`. The Stage 1 master is read-only; every",
+        "view below is a filter over it plus new `pol_*` policy columns.",
+        "",
+        "## Chronological split",
+        "",
+        f"- **train**: up to {cfg['train_end']} (one full kharif/rabi/summer cycle; Feb 2024 missing)",
+        f"- **valid**: up to {cfg['valid_end']} (threshold calibration only)",
+        "- **test**: everything later (2025-01 to 2025-07, partial July)",
+        "",
+        "| Split | Rows | Distinct questions (q_key) | Test-style leakage: q_key also seen earlier |",
+        "|---|---:|---:|---:|",
+    ]
+    seen: set = set()
+    for split in ["train", "valid", "test"]:
+        part = master[master["split"] == split]
+        keys = set(part["q_key"])
+        overlap = part["q_key"].isin(seen).mean() if seen else 0.0
+        lines.append(f"| {split} | {len(part):,} | {len(keys):,} | {overlap:.1%} |")
+        seen |= keys
+    lines += [
+        "",
+        "The last column is why both **realistic** (repeats allowed) and **hard** (unseen",
+        "`q_key` only) results are reported in the evaluation.",
+        "",
+        "## Content policy beyond Stage 1 flags",
+        "",
+        "Stage 1 `flag_dated_answer` only matches the two exact template questions. The",
+        "policy detectors (`src/triage/policy.py`) also read free-text questions and the",
+        "Marathi answers.",
+        "",
+        "### Time-sensitive content (excluded from the knowledge base)",
+        "",
+        "| Detector | Rows | Share | Not caught by Stage 1 `flag_dated_answer` |",
+        "|---|---:|---:|---:|",
+    ]
+    for col in [
+        "pol_q_live_market", "pol_q_live_weather", "pol_q_scheme_timing", "pol_ans_live_weather",
+        "pol_ans_live_price", "pol_ans_scheme_timebound", "pol_time_sensitive",
+    ]:
+        m = master[col]
+        extra = (m & ~master["flag_dated_answer"]).sum()
+        lines.append(f"| `{col}` | {m.sum():,} | {m.mean():.2%} | {extra:,} |")
+
+    lines += [
+        "",
+        "### Routing signals (kept in the knowledge base, used by the gate)",
+        "",
+        "| Signal | Rows | Share |",
+        "|---|---:|---:|",
+    ]
+    for col in ["pol_q_scheme", "pol_q_dose", "pol_ans_dose_advice", "pol_ans_agrochemical", "pol_ans_chemical"]:
+        m = master[col]
+        lines.append(f"| `{col}` | {m.sum():,} | {m.mean():.2%} |")
+
+    lines += [
+        "",
+        "### Chemical answers by query type (top 12 types)",
+        "",
+        "Share of valid, non-time-sensitive rows whose historical answer gives chemical",
+        "advice: a dose (quantity, NPK ratio, formulation code) or a named pesticide/spray.",
+        "These are never auto-answered; the gate sends them to expert review with the",
+        "historical answer attached as a draft.",
+        "",
+        "| Query type | Rows | Dose share | Any chemical advice |",
+        "|---|---:|---:|---:|",
+    ]
+    static = master[master["is_valid_qa"] & ~master["pol_time_sensitive"]]
+    by_type = static.groupby("query_type_clean").agg(
+        size=("pol_ans_chemical", "size"),
+        dose=("pol_ans_dose_advice", "mean"),
+        chem=("pol_ans_chemical", "mean"),
+    )
+    for qt, row in by_type.sort_values("size", ascending=False).head(12).iterrows():
+        lines.append(f"| {qt} | {int(row['size']):,} | {row['dose']:.1%} | {row['chem']:.1%} |")
+
+    lines += [
+        "",
+        "## Views",
+        "",
+        "| View | Rule | Rows |",
+        "|---|---|---:|",
+        f"| Master audit (`corpus_tagged`) | all rows | {n:,} |",
+        f"| Stage 1 static candidate | `is_valid_qa & ~flag_dated_answer` | "
+        f"{(master['is_valid_qa'] & ~master['flag_dated_answer']).sum():,} |",
+        f"| **Knowledge-base candidates** | `is_valid_qa & ~pol_time_sensitive` | {len(kb):,} |",
+        f"| KB, distinct Q&A pairs | first occurrence of each `qa_key` | {kb['qa_key'].nunique():,} |",
+        f"| KB, distinct questions | distinct `q_key` | {kb['q_key'].nunique():,} |",
+        f"| Live-data pointer | `pol_time_sensitive` | {master['pol_time_sensitive'].sum():,} |",
+        f"| KB rows with chemical answers | `pol_risk == chemical` | "
+        f"{(kb['pol_risk'] == 'chemical').sum():,} |",
+        "",
+        "## Classifier label spaces",
+        "",
+        f"- `query_type_model`: {master['query_type_model'].nunique()} classes "
+        "(12 kept types + `Other`; aliases in `config/triage.yaml`).",
+        f"- `crop_model`: {master.loc[master['crop_model'] != '', 'crop_model'].nunique()} specific crops "
+        f"with >= {load_config()['classifier']['crop_min_rows']} training rows; "
+        f"{(master['crop_model'] == '').mean():.1%} of rows have no specific crop label "
+        "(`Others`, rare or blank) and are not used for crop training.",
+        f"- Crop named in the question text (lexicon): {(master['crop_mentioned'] != '').mean():.1%} of rows.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    result = build_views()
+    rep_dir = path("reports")
+    rep_dir.mkdir(parents=True, exist_ok=True)
+    (rep_dir / "views_report.md").write_text(views_report(result["master"], result["kb"]), encoding="utf-8")
+    print(f"Wrote {rep_dir / 'views_report.md'}")
