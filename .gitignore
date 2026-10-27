@@ -1,6 +1,9 @@
 # Raw and clean datasets (never commit large data)
 data/raw/
 data/clean/
+# Stage 2 derived views, embeddings and trained models (rebuilt by src.triage.build)
+data/views/
+data/artifacts/
 
 # Environment and secrets
 .env
