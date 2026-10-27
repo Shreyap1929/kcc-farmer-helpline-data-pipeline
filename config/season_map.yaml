@@ -1,0 +1,15 @@
+# Season mapping from month number (1-12) to agricultural season
+# Default: Jun–Oct = kharif, Nov–Feb = rabi, Mar–May = summer
+months:
+  1: rabi
+  2: rabi
+  3: summer
+  4: summer
+  5: summer
+  6: kharif
+  7: kharif
+  8: kharif
+  9: kharif
+  10: kharif
+  11: rabi
+  12: rabi

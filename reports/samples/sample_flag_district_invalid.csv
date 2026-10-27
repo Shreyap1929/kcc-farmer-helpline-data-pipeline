@@ -1,0 +1,6 @@
+KCCCallID,source_file,district_clean,q_clean,ans_clean,exclude_reason
+103301,mh-2024-1.csv,,Asked about dose of coragen in bengal gram?,--कोराजन 5 मिली/१५ लिटर पाण्यामध्ये घेऊन फवारणी करावी.(क्लोरअॅनट्रानिलीप्रोल १५.८% EC)डुपॉन्ट इंडिया,flag_district_invalid
+1113706,mh-2024-5.csv,,Government schemes Agri Infra Fund,"এটি ভারত সরকারের কিষান কল সেন্টার , চাষবাসের সমস্ত রকমের তথ্য আপনি জানতে পারবেন , যেমন - রোগ পোকা প্রতিরোধ , আবহাওয়া , বাজারদর , সরকারি প্রকল্প .আমাদের টোল ফ্রী নম্বর - ১৮০০১৮০১৫৫১, যেটি আপনার সপ্তাহের প্রতিদিন সকাল ৬টা থেকে রাত ১০টা পর্যন্ত খোলা থাকবে।",flag_district_invalid
+829166,mh-2024-3.csv,,Farmer asked query on Weather,"हवामान अंदाज - येत्या आठवड्यात वातावरण अंशतः ढगाळ राहील, पावसाची शक्यता नाही. तापमान कमाल 38 अंश सेल्सियस आणि किमान 26अंश सेल्सियस,वाऱ्याचा वेग 6 किलोमीटर/ तास.","flag_weather_template,flag_dated_answer,flag_district_invalid"
+7700679,mh-2023-12.csv,,ASKED ABOUT TO INSECT CONTROL IN MUSTERD ?,थायोमेंथोक्जाम 25% डबल्यू.जी.(एक्टारा) 0.5 ग्राम प्रति लीटर पानी में घोल बना कर छिड़काव करें।,flag_district_invalid
+1050596,mh-2024-5.csv,,Information about Pradhan Mantri Kusum Solar Pump Scheme..?,महोदय पीएम कुसुम में सोलर पंप बुकिंग हेल्पडेस्क नंबर :- 18001803333 पर संपर्क करे |,flag_district_invalid

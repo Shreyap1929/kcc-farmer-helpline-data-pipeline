@@ -1,0 +1,51 @@
+KCCCallID,source_file,district_clean,q_clean,ans_clean,exclude_reason
+4893030,mh-2025-7.csv,BEED,FARMER ASKED ABOUT FERTILIZER DOSE OF SOYA BEAN CROP ?,--,flag_ans_empty
+7415541,mh-2023-11.csv,BEED,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+1293340,mh-2024-6.csv,OSMANABAD,FARMER ASKING ABOUT SUGERCANE FERTILIZER DOSE?,86032,flag_ans_empty
+1151682,mh-2024-5.csv,OSMANABAD,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+2670312,mh-2024-10.csv,BULDANA,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+5044713,mh-2025-7.csv,NAGPUR,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+2872666,mh-2024-10.csv,NANDED,Farmer asked query on Mandi details,--,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+700035,mh-2024-3.csv,NANDED,Farmer asked about hybrid variety of Coriander for summer season?,Ashoka A5,flag_ans_empty
+7647649,mh-2023-12.csv,NASIK,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+4914894,mh-2025-7.csv,PARBHANI,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+5050365,mh-2025-7.csv,AHMADNAGAR,other state,--,flag_ans_empty
+5059187,mh-2025-7.csv,AKOLA,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+4499501,mh-2025-6.csv,MUMBAI SUBURBAN,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+5059200,mh-2025-7.csv,AURANGABAD,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+5044668,mh-2025-7.csv,AHMADNAGAR,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+5059026,mh-2025-7.csv,NANDED,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+2322927,mh-2024-8.csv,BEED,FARMER ASKED ABOUT ATTACK OF WILT ON METHI CROP?,-,flag_ans_empty
+5059095,mh-2025-7.csv,AKOLA,INCOMPLETE,--,flag_ans_empty
+5059194,mh-2025-7.csv,NAGPUR,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+4955970,mh-2025-7.csv,AURANGABAD,FARMER ASKED ABOUT WATER MOTOR INFORMATION ?,--,flag_ans_empty
+2670333,mh-2024-10.csv,HINGOLI,Farmer asked query on Mandi details,--,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+1836915,mh-2024-7.csv,SOLAPUR,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+3566955,mh-2025-2.csv,JALGAON,Other state call,--,flag_ans_empty
+1919554,mh-2024-7.csv,SINDHUDURG,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+2898584,mh-2024-10.csv,WASHIM,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+5044703,mh-2025-7.csv,NAGPUR,INCOMPLETE CALL,--,"flag_ans_empty,flag_incomplete_call"
+220287,mh-2024-1.csv,NANDED,about sugarcane water management,191919,flag_ans_empty
+3750190,mh-2025-2.csv,JALNA,FARMER ASKED ABOUT STATUS OF INSTALLMENT IN PRADHANMANTRI KISAN SANMAN NIDHI YOJANA?,--,flag_ans_empty
+1688737,mh-2024-7.csv,AURANGABAD,Farmer asked query on Mandi details,--,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+3447640,mh-2025-1.csv,WASHIM,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+3799197,mh-2025-3.csv,MUMBAI,transfer,transfer,flag_ans_empty
+3804165,mh-2025-3.csv,NASIK,FARMER ASKED ABOUT MARKET RATE ON ONION CROP?,--,flag_ans_empty
+3156980,mh-2024-12.csv,AHMADNAGAR,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+3582467,mh-2025-2.csv,NAGPUR,FARMER ASKED ABOUT PM FBY CLAIM SETTLEMENTS ?,14447,flag_ans_empty
+2616543,mh-2024-9.csv,AURANGABAD,FARMER ASKED ABOUT FERTILIZER DOSE ON TURMERIC CROP?,खते -,flag_ans_empty
+187569,mh-2024-1.csv,AURANGABAD,Farmer asked query on Mandi details,--,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+4518204,mh-2025-6.csv,AKOLA,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+5021143,mh-2025-7.csv,NASIK,Farmer asked query on Weather,os,"flag_ans_empty,flag_weather_template,flag_dated_answer,flag_sector_numeric"
+561011,mh-2024-3.csv,AMRAVATI,Farmer asked query on Weather,,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+5075901,mh-2025-7.csv,PALGHAR,OTHER STATE CALL,--,flag_ans_empty
+1306057,mh-2024-6.csv,WASHIM,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+4072300,mh-2025-4.csv,LATUR,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"
+2824703,mh-2024-10.csv,NASIK,Farmer asked query on Weather,नांदगाव,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+1074709,mh-2024-5.csv,PUNE,Farmer asked query on Weather,v,"flag_ans_empty,flag_weather_template,flag_dated_answer"
+7731296,mh-2023-12.csv,PUNE,asked about thibak sinchan yojna?,--,flag_ans_empty
+3355224,mh-2024-12.csv,YEVATMAL,FARMER ASKED ABOUT P[M FBY CUSTMER CARE?,14447,flag_ans_empty
+3558096,mh-2025-2.csv,LATUR,FARMER ASKED ABOUT FARMER ID REGESTRATION RELATED INFORMATION ?,--,flag_ans_empty
+117980,mh-2024-1.csv,LATUR,FARMER ASKED ABOUT ATTACK OF WILT ON GRAM CROP ?,--,flag_ans_empty
+4780485,mh-2025-7.csv,AHMADNAGAR,Othr state call,--,flag_ans_empty
+256590,mh-2024-1.csv,YEVATMAL,Farmer asked query on Mandi details,,"flag_ans_empty,flag_mandi_template,flag_dated_answer"

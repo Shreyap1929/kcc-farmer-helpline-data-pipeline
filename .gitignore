@@ -1,0 +1,20 @@
+# Raw and clean datasets (never commit large data)
+data/raw/
+data/clean/
+
+# Environment and secrets
+.env
+*.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
