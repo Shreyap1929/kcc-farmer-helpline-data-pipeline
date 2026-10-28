@@ -14,3 +14,10 @@
 - Added SQLite session/turn/pending-clarification/expert-case storage. Clarifications are single-use and expire after ten minutes; audio is not persisted. Added `.venv/` and `data/runtime/` to `.gitignore`.
 - Focused tests: **10 passed**. No Stage 2 artifacts were rebuilt.
 - Next: Phase 3 API endpoints and tests.
+
+## Phase 3 - Chat, voice, session, and audio API
+
+- Added session creation, typed chat, multipart voice upload, and short-lived reply-audio retrieval endpoints; the operator API and `/` route remain intact. Upload audio is never persisted; expert drafts remain server-side.
+- Added mocked endpoint tests for typed fallback, missing sessions, expert-case hiding, voice upload/audio fetch, and unavailable speech services. `tests/test_api.py`: **14 passed**.
+- Added the required `python-multipart==0.0.20` parser to requirements and installed it into the existing Python 3.13.12 venv; no Stage 2 build was run.
+- Next: Phase 4 farmer chat UI.
