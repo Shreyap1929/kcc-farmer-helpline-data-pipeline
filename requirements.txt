@@ -21,3 +21,9 @@ pydantic>=2.6
 # Tests
 pytest>=8
 httpx>=0.27
+
+# Stage 3 assistant integrations (pinned for repeatable installs)
+groq==1.7.0
+python-dotenv==1.2.4
+edge-tts==7.3.1
+gTTS==2.5.4
