@@ -51,11 +51,12 @@ def engine():
 
 
 def test_default_expansion_path_is_preserved(engine):
-    engine.triage("How to sow wheat?")
+    result = engine.triage("How to sow wheat?")
     retriever, classifier, gate, texts = engine.probe
     assert texts == ["How to sow wheat?"]
     assert classifier.text == "How to sow wheat?"
     assert gate.final_input.text == "How to sow wheat?"
+    assert set(result["query"]) == {"text", "district", "crop", "month", "season", "retrieval_text"}
 
 
 def test_translate_mode_uses_translation_for_retrieval_and_original_for_gate(engine):

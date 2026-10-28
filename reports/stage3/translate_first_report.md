@@ -10,15 +10,15 @@ and retain the existing query path.
 
 | Variant | Held-out retrieval on topic | Gate routes correct |
 |---|---:|---:|
-| plain | 0/0 | 0/0 |
-| expanded | 0/0 | 0/0 |
+| plain | unavailable | unavailable |
+| expanded | unavailable | unavailable |
 | translate | unavailable | unavailable |
 
-**Decision:** Keep glossary expansion.
+**Decision:** Do not adopt translate-first; comparison incomplete.
 
 **Evaluation limitation:** Stage 2 runtime artifacts are missing: [Errno 2] No such file or directory: 'D:\\Downloads\\kcc-farmer-helpline-data-pipeline\\data\\artifacts\\question_texts.parquet'. Build required to measure.
 
-No translation provider was available. Translate-first scores are unavailable; no result is imputed.
+Translate-first scores are unavailable; no score or result is imputed.
 
 ## Retrieval examples and failures
 

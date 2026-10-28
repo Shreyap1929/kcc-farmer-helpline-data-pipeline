@@ -30,7 +30,7 @@ def build_report(retrieval_rows: list[dict], route_rows: list[dict], *, translat
     trans_ret = retrieval_scores["translate"]
     exp_route = route_scores["expanded"]
     trans_route = route_scores["translate"]
-    adopt = translation_available and trans_ret > exp_ret and trans_route >= exp_route
+    adopt = translation_available and n_retrieval > 0 and n_routes > 0 and trans_ret > exp_ret and trans_route >= exp_route
     lines = [
         "# Stage 3 - Translate-first experiment", "",
         "Evaluation uses the frozen held-out retrieval keywords and Marathi/Hindi gate probes.",
@@ -44,12 +44,20 @@ def build_report(retrieval_rows: list[dict], route_rows: list[dict], *, translat
     for variant in variants:
         ret = "unavailable" if variant == "translate" and not translation_available else f"{retrieval_scores[variant]}/{n_retrieval}"
         routes = "unavailable" if variant == "translate" and not translation_available else f"{route_scores[variant]}/{n_routes}"
+        if not n_retrieval:
+            ret = "unavailable"
+        if not n_routes:
+            routes = "unavailable"
         lines.append(f"| {variant} | {ret} | {routes} |")
-    lines += ["", f"**Decision:** {'Adopt translate-first' if adopt else 'Keep glossary expansion'}.", ""]
+    decision = "Adopt translate-first" if adopt else (
+        "Do not adopt translate-first; comparison incomplete" if not translation_available or not n_retrieval or not n_routes
+        else "Keep glossary expansion"
+    )
+    lines += ["", f"**Decision:** {decision}.", ""]
     if blocker:
         lines += [f"**Evaluation limitation:** {blocker}", ""]
     if not translation_available:
-        lines += ["No translation provider was available. Translate-first scores are unavailable; no result is imputed.", ""]
+        lines += ["Translate-first scores are unavailable; no score or result is imputed.", ""]
     lines += ["## Retrieval examples and failures", "", "| Variant | Input | Top-1 KB question | Topic match |", "|---|---|---|:-:|"]
     for row in retrieval_rows:
         lines.append(f"| {row['variant']} | {row['text']} | {row['top1']} | {'yes' if row['on_topic'] else 'no'} |")

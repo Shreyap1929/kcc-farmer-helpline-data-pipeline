@@ -95,10 +95,14 @@ class TriageEngine:
             GateInput(text, signals, crops_mentioned, prediction, hits, profile_crop=crop)
         )
         out = decision.to_dict()
+        query = {"text": text, "district": district, "crop": crop, "month": month, "season": season,
+                 "retrieval_text": retrieval_text}
+        if retrieval_mode != "expanded":
+            query["retrieval_mode"] = retrieval_mode
+        if translated_text and is_devanagari:
+            query["translated_text"] = translated_text
         out.update({
-            "query": {"text": text, "district": district, "crop": crop, "month": month, "season": season,
-                      "retrieval_text": retrieval_text, "retrieval_mode": retrieval_mode,
-                      "translated_text": translated_text},
+            "query": query,
             "prediction": prediction,
             "signals": {
                 "live_market": signals.live_market,
