@@ -242,6 +242,10 @@ class SessionStore:
             self._event(db, case_id, status, expert, {"resolution": resolution, **checks})
         return self.get_expert_case(case_id)
 
+    def record_reuse(self, case_id: str, session_id: str, similarity: float) -> None:
+        with self._connect() as db:
+            self._event(db, case_id, "reused", None, {"session_id": session_id, "similarity": round(similarity, 4)})
+
     def take_updates(self, session_id: str) -> list[dict]:
         """Resolved cases the farmer has not seen yet; marks them delivered."""
         with self._connect() as db:
@@ -260,6 +264,7 @@ class SessionStore:
             minutes = [row["m"] for row in db.execute("""
                 SELECT (julianday(resolved_at) - julianday(created_at)) * 1440 AS m
                 FROM expert_cases WHERE resolved_at IS NOT NULL ORDER BY m""")]
+            reused = db.execute("SELECT COUNT(*) FROM case_events WHERE kind = 'reused'").fetchone()[0]
             open_reasons = db.execute(
                 "SELECT route_reasons FROM expert_cases WHERE status IN ('pending', 'in_review')").fetchall()
         reason_counts: dict[str, int] = {}
@@ -272,6 +277,7 @@ class SessionStore:
             "by_status": {s: counts.get(s, 0) for s in ("pending", "in_review", "answered", "referred")},
             "median_minutes_to_resolve": round(minutes[len(minutes) // 2], 1) if minutes else None,
             "open_by_reason": dict(sorted(reason_counts.items(), key=lambda kv: -kv[1])),
+            "reused_answers": reused,
         }
 
 

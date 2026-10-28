@@ -26,6 +26,7 @@ from src.assistant.translate import AssistantUnavailable, translate_to_english
 from src.assistant.tts import synthesize
 
 from src.api.review import build_router as build_review_router
+from src.review.reviewed_answers import ReviewedAnswers, delivered_text
 from src.review.workflow import build_review_graph
 from src.triage.config import CONFIG_DIR
 
@@ -62,7 +63,7 @@ def _examples(engine) -> list[dict]:
 
 
 def create_app(engine=None, *, session_store=None, transcriber=None, audio_translator=None, tts=None,
-               review_translator=None) -> FastAPI:
+               review_translator=None, reviewed_embed=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if engine is None:
@@ -77,6 +78,9 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         app.state.tts = tts or synthesize
         app.state.audio = {}
         app.state.review_graph = build_review_graph(app.state.sessions, review_translator)
+        # Expert answers reused for repeat questions; needs the engine's sentence model.
+        embed = reviewed_embed or getattr(app.state.engine, "embed", None)
+        app.state.reviewed = ReviewedAnswers(app.state.sessions, embed) if embed else None
         app.state.examples = _examples(app.state.engine)
         yield
 
@@ -124,6 +128,14 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         decision = request.app.state.engine.triage(
             clarified.text, district=session.get("district"), crop=profile_crop, month=session.get("month")
         )
+        reviewed = request.app.state.reviewed
+        match = reviewed.match(clarified.text, language, decision) if reviewed is not None else None
+        if match is not None:
+            decision = {**decision, "route": "ANSWER", "reply": delivered_text(match), "reviewed_case": match,
+                        "reasons": [{"code": "REVIEWED_MATCH", "detail": (
+                            f"Same question as expert case {match['case_id']} "
+                            f"(similarity {match['similarity']:.3f})")}]}
+            store.record_reuse(match["case_id"], req.session_id, match["similarity"])
         case_id = None
         if decision.get("route") == "EXPERT_REVIEW":
             # The English version is only for the expert, so only expert cases pay for it.
@@ -148,6 +160,8 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         store.add_turn(req.session_id, req.text, decision.get("route", "EXPERT_REVIEW"), elapsed)
         payload = {"session_id": req.session_id, "route": decision.get("route"), "reply": reply,
                    "language": language, "case_id": case_id, "latency_ms": elapsed}
+        if match is not None:
+            payload["reviewed_case_id"] = match["case_id"]
         return payload
 
     def _cache_audio(request: Request, audio: bytes) -> str:

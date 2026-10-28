@@ -73,7 +73,7 @@
     .who label { color: var(--muted); font-size: 12px; font-weight: 650; }
     .who input { width: 190px; min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet-raised); }
 
-    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 16px clamp(16px, 3vw, 36px) 0; }
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 16px clamp(16px, 3vw, 36px) 0; }
     .stat { padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--sheet); }
     .stat b { display: block; font-size: 22px; line-height: 1.15; font-variant-numeric: tabular-nums; }
     .stat span { color: var(--muted); font-size: 12px; }
@@ -178,6 +178,7 @@
     <div class="stat"><b id="statAnswered">–</b><span>Answered</span></div>
     <div class="stat"><b id="statReferred">–</b><span>Referred</span></div>
     <div class="stat"><b id="statMedian">–</b><span>Median time to resolve</span></div>
+    <div class="stat"><b id="statReused">–</b><span>Answers reused</span></div>
   </section>
 
   <main class="desk">
@@ -276,6 +277,7 @@
           $("#statReview").textContent = s.by_status.in_review;
           $("#statAnswered").textContent = s.by_status.answered;
           $("#statReferred").textContent = s.by_status.referred;
+          $("#statReused").textContent = s.reused_answers;
           const m = s.median_minutes_to_resolve;
           $("#statMedian").textContent = m === null ? "–" : m < 60 ? `${Math.round(m)} min` : `${(m / 60).toFixed(1)} h`;
         } catch (_) { /* the queue shows the error */ }
@@ -425,6 +427,8 @@
         if (k.chemical) out.push(chip("Contains chemical advice"));
         if (k.time_sensitive) out.push(chip("Time-sensitive"));
         if (c.reusable) out.push(chip("Reusable for future answers", "status-answered"));
+        const reuses = (c.events || []).filter((e) => e.kind === "reused").length;
+        if (reuses) out.push(chip(`Reused for ${reuses} more farmer${reuses > 1 ? "s" : ""}`, "lang"));
         return out;
       }
 

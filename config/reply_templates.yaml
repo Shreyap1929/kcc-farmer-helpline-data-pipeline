@@ -41,3 +41,7 @@ templates:
     en: "Expert's note:"
     mr: "तज्ज्ञांची सूचना:"
     hi: "विशेषज्ञ की टिप्पणी:"
+  REVIEWED_SOURCE:
+    en: "Answered earlier by a KCC expert for a similar question (case {case_id}, {date})."
+    mr: "अशाच प्रश्नासाठी KCC तज्ज्ञांनी आधी दिलेले उत्तर (प्रकरण {case_id}, {date})."
+    hi: "ऐसे ही सवाल के लिए KCC विशेषज्ञ का पहले दिया गया जवाब (केस {case_id}, {date})."

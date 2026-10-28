@@ -91,6 +91,13 @@ def compose_reply(decision: dict, language: str, *, client=None, case_id: str | 
     reasons = decision.get("reasons") or []
     reason_codes = {_value(r, "code") for r in reasons}
 
+    if route == "ANSWER" and decision.get("reviewed_case"):
+        # An expert's own answer, already in this language: never rewritten.
+        case = decision["reviewed_case"]
+        source = template_text("REVIEWED_SOURCE", language, case_id=case["case_id"],
+                               date=str(case.get("resolved_at") or "")[:10])
+        return f"{decision['reply']}\n\n{source}"
+
     if route == "ANSWER":
         source = decision.get("answer_source")
         historical = _value(source, "answer") or decision.get("reply", "")

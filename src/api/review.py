@@ -98,8 +98,11 @@ def build_router() -> APIRouter:
     @router.post("/cases/{case_id}/resolve")
     def resolve(case_id: str, req: ResolveRequest, request: Request):
         try:
-            return resolve_case(request.app.state.sessions, case_id, action=req.action, expert=req.expert,
-                                answer=req.answer, note=req.note, graph=request.app.state.review_graph)
+            result = resolve_case(request.app.state.sessions, case_id, action=req.action, expert=req.expert,
+                                  answer=req.answer, note=req.note, graph=request.app.state.review_graph)
+            if getattr(request.app.state, "reviewed", None) is not None:
+                request.app.state.reviewed.add(result)
+            return result
         except KeyError:
             raise _not_found(case_id)
         except CaseConflict as exc:
