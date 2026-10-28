@@ -1,0 +1,5 @@
+file,speaker,lang,noisy,reference_text,expected_route
+synthetic/edge-mr.mp3,synthetic-edge,mr,false,माझ्या कापसाच्या पिकाची पाने पिवळी पडत आहेत,
+synthetic/edge-hi.mp3,synthetic-edge,hi,false,मेरी कपास की फसल की पत्तियाँ पीली पड़ रही हैं,
+synthetic/gtts-mr.mp3,synthetic-gtts,mr,false,माझ्या कापसाच्या पिकाची पाने पिवळी पडत आहेत,
+synthetic/gtts-hi.mp3,synthetic-gtts,hi,false,मेरी कपास की फसल की पत्तियाँ पीली पड़ रही हैं,

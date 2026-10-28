@@ -5,6 +5,7 @@ data/clean/
 data/views/
 data/artifacts/
 data/runtime/
+data/voice_eval/
 
 # Environment and secrets
 .env

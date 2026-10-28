@@ -35,4 +35,11 @@
 - Added an evaluation runner for the held-out retrieval set and Marathi/Hindi gate probes, with a documented adoption criterion requiring better top-1 retrieval and no route-accuracy regression. Thresholds were not changed.
 - Offline retrieval-mode plus gate/policy tests: **108 passed**. `reports/stage3/translate_first_report.md` records the real blocker and unavailable measurements.
 - The approved build regenerated ignored `data/views/` (241 seconds) but failed before embeddings: `sentence_transformers` is absent; `torch` is also absent. The declared ranges are unpinned, and the user’s dependency choice is pending. Translate-first is not adopted.
-- Next: Phase 6 voice evaluation harness; continue with existing synthetic TTS clips where available, and return to the experiment if dependencies are approved.
+- Phase 5 measurement remains blocked until the dependency decision; return to the experiment if approved.
+
+## Phase 6 - Voice evaluation harness (route comparison pending)
+
+- Added `config/voice_eval.csv` and `python -m src.assistant.voice_eval`, with Unicode CER, typed-reference versus STT route agreement, per-language summaries, and safe handling of missing audio/triage. Audio paths are constrained to the ignored `data/voice_eval/` directory.
+- Generated and evaluated four clearly synthetic probes (Edge/gTTS, Marathi/Hindi) through Groq Whisper. CER: Marathi **0.221** (2 samples), Hindi **0.422** (2 samples). These small synthetic results are not representative of farmer speech; the gTTS Hindi clip CER was **0.800**.
+- Route agreement is unavailable because Stage 2 embeddings/classifier artifacts are missing. No farmer recordings or expected route values were fabricated. No Marathi/Hindi listening check was completed; Edge remains provisional pending human comparison.
+- Next: Phase 7 documentation and hand-off; revisit blocked measurements if model-dependency installation is approved.
