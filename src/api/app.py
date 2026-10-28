@@ -21,7 +21,7 @@ from src.assistant.clarification import apply_followup, remember_if_clarifying
 from src.assistant.composer import compose_reply
 from src.assistant.language import detect_language
 from src.assistant.sessions import SessionStore
-from src.assistant.stt import transcribe_audio
+from src.assistant.stt import transcribe_audio, translate_audio
 from src.assistant.translate import AssistantUnavailable, translate_to_english
 from src.assistant.tts import synthesize
 
@@ -59,7 +59,7 @@ def _examples(engine) -> list[dict]:
     ]
 
 
-def create_app(engine=None, *, session_store=None, transcriber=None, tts=None) -> FastAPI:
+def create_app(engine=None, *, session_store=None, transcriber=None, audio_translator=None, tts=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if engine is None:
@@ -70,6 +70,7 @@ def create_app(engine=None, *, session_store=None, transcriber=None, tts=None) -
             app.state.engine = engine
         app.state.sessions = session_store or SessionStore()
         app.state.transcriber = transcriber or transcribe_audio
+        app.state.audio_translator = audio_translator or translate_audio
         app.state.tts = tts or synthesize
         app.state.audio = {}
         app.state.examples = _examples(app.state.engine)
@@ -101,7 +102,8 @@ def create_app(engine=None, *, session_store=None, transcriber=None, tts=None) -
             raise HTTPException(status_code=422, detail="text must not be empty")
         return request.app.state.engine.triage(req.text, district=req.district, crop=req.crop, month=req.month)
 
-    def _chat(req: ChatMessage, request: Request, *, language_override: str | None = None):
+    def _chat(req: ChatMessage, request: Request, *, language_override: str | None = None,
+              english_override: str | None = None):
         store = request.app.state.sessions
         session = store.get_session(req.session_id)
         if session is None:
@@ -110,10 +112,13 @@ def create_app(engine=None, *, session_store=None, transcriber=None, tts=None) -
         language = language_override or session.get("language") or detect_language(req.text)
         clarified = apply_followup(store, req.session_id, req.text)
         profile_crop = clarified.crop or session.get("crop")
-        try:
-            english = translate_to_english(clarified.text, language)
-        except AssistantUnavailable:
-            english = clarified.text
+        if english_override is not None:
+            english = english_override
+        else:
+            try:
+                english = translate_to_english(clarified.text, language)
+            except AssistantUnavailable:
+                english = clarified.text
         decision = request.app.state.engine.triage(
             clarified.text, district=session.get("district"), crop=profile_crop, month=session.get("month")
         )
@@ -168,7 +173,13 @@ def create_app(engine=None, *, session_store=None, transcriber=None, tts=None) -
         req = ChatMessage(session_id=session_id, text=transcript["text"])
         language = transcript.get("language")
         language = {"marathi": "mr", "hindi": "hi", "english": "en"}.get(language, language)
-        result = _chat(req, request, language_override=language)
+        try:
+            english = request.app.state.audio_translator(contents, audio.filename or "recording.webm",
+                                                         audio.content_type or "audio/webm")
+        except Exception:
+            # Transcription still gives a usable text path if Whisper translation is down.
+            english = transcript["text"]
+        result = _chat(req, request, language_override=language, english_override=english)
         result["transcript"] = req.text
         try:
             audio_reply = await request.app.state.tts(result["reply"], result["language"])

@@ -46,12 +46,19 @@ def client(tmp_path, monkeypatch):
     async def fake_tts(text, language):
         return b"reply-audio"
 
+    audio_translate_calls = []
+    def fake_audio_translate(audio, filename, content_type):
+        audio_translate_calls.append((audio, filename, content_type))
+        return "translated voice question"
+
     store = SessionStore(tmp_path / "assistant.db")
     with TestClient(create_app(engine=engine, session_store=store,
                                transcriber=lambda *args: {"text": "question", "language": "en"},
+                               audio_translator=fake_audio_translate,
                                tts=fake_tts)) as c:
         c.engine = engine
         c.store = store
+        c.audio_translate_calls = audio_translate_calls
         yield c
 
 
@@ -127,6 +134,7 @@ def test_voice_upload_returns_transcript_text_and_retrievable_reply_audio(client
     assert result.status_code == 200
     body = result.json()
     assert body["transcript"] == "question" and body["reply"]
+    assert client.audio_translate_calls == [(b"fake audio", "note.webm", "audio/webm")]
     audio = client.get(body["audio_url"])
     assert audio.status_code == 200 and audio.content == b"reply-audio"
     assert audio.headers["content-type"] == "audio/mpeg"
