@@ -8,7 +8,59 @@ pipelines to refresh them, do not edit them by hand.
 |---|---|---|---|
 | 1. Data cleaning | Shreya | Done | 2026-10-27 20:03 |
 | 2. Triage core (text) | Amir | Done | 2026-10-27 22:50 |
-| 3. Speech, LLM replies, expert queue, golden set | - | Not started | - |
+| 3. Farmer chat and voice (expert dashboard deferred) | Shreya | Partial - implementation built; model-backed validation blocked | 2026-10-28 |
+
+---
+
+## Stage 3 - Farmer chat and voice (implementation partial; validation blocked)
+
+**Done by Shreya** - 2026-10-28, 16:52 to 17:43 IST
+Design: [docs/stage3_chat_voice.md](docs/stage3_chat_voice.md)
+
+### What was built
+
+| Piece | Where | What it does |
+|---|---|---|
+| Assistant adapters | `src/assistant/`, `config/assistant.yaml` | Language detection, Groq Whisper STT/translation, Groq text translation, Edge TTS/gTTS adapter, graceful text fallback |
+| Replies and state | `src/assistant/composer.py`, `sessions.py`, `clarification.py`, `config/reply_templates.yaml` | Grounded answer rewrite, fixed multilingual non-answer replies, SQLite turns/clarifications/expert cases; drafts hidden from farmers |
+| API | `src/api/app.py` | Chat message, voice upload, generated audio retrieval, session creation; existing `/` console retained |
+| Farmer UI | `src/api/static/chat.html` | Mobile-first multilingual chat, recording timer, accessible history, audio playback, dark mode |
+| Translate-first experiment | `src/triage/engine.py`, `src/triage/translate_first.py` | Opt-in raw/expanded/translated retrieval; safety keyword signals union original and translated text |
+| Voice evaluation | `src/assistant/voice_eval.py`, `config/voice_eval.csv` | CER and typed/voice route agreement harness; audio remains ignored |
+
+### Results and blockers
+
+| Measure | Result |
+|---|---|
+| Focused assistant/API/UI-route checks | Phase 1: 14 passed; Phase 2: 10 passed; Phase 3: 15 passed; Phase 4: 15 passed |
+| Translate-first/gate/policy checks | 108 passed; measurement unavailable |
+| Voice harness unit checks | 4 passed |
+| Full available pytest suite | **169 passed, 2 skipped, 0 failed**; both skips require built models |
+| Synthetic voice CER | Marathi 0.221 (2 clips); Hindi 0.422 (2 clips); gTTS Hindi sample CER 0.800 |
+| Voice route agreement | Unavailable: Stage 2 embeddings/classifier artifacts are missing |
+| Translate-first adoption | Not adopted; model-backed retrieval and route comparison could not run |
+| UI verification | Browser width checks at 1400/390/375 px found no horizontal overflow; live API, microphone, and requested screenshot set remain unverified |
+
+The Stage 2 build regenerated ignored `data/views/` in 241 seconds, then stopped before
+embedding because `sentence-transformers` and `torch` are missing. Requirements declare
+open version ranges for both, and installing a pinned Python 3.13 CPU pair is awaiting
+Shreya's approval. No gate threshold was changed. Synthetic speech results do not
+represent farmer speech; TTS listening comparison and Marathi/Hindi native template
+review remain open. The complete suite was run on 2026-10-28: **169 passed, 2 skipped,
+0 failed**. `tests/test_triage_artifacts.py:65` and `:76` skipped because models are not
+built.
+
+### Open items for Stage 4 / hand-off
+
+- Complete the approved model dependency setup and rebuild only the missing Stage 2
+  embedding/classifier outputs; rerun translate-first retrieval and gate-probe comparison.
+- Run route agreement on voice clips; collect at least 20 real notes from Shreya and Amir
+  (Marathi/Hindi, both speakers, at least three with background noise).
+- Human-listen to Edge and gTTS in Marathi/Hindi; review fixed Marathi/Hindi templates.
+- Run app-origin end-to-end checks, microphone recording, the 10-call latency measures,
+  and the 1400px/390px/dark UI screenshot checks.
+- Stage 4: expert-review dashboard, case resolution/response workflow, and approved
+  answer feedback loop. These are intentionally outside this Stage 3 implementation.
 
 ---
 

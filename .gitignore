@@ -4,10 +4,13 @@ data/clean/
 # Stage 2 derived views, embeddings and trained models (rebuilt by src.triage.build)
 data/views/
 data/artifacts/
+data/runtime/
+data/voice_eval/
 
 # Environment and secrets
 .env
 *.env
+.venv/
 
 # Python artifacts
 __pycache__/

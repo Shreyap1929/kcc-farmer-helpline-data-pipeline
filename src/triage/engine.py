@@ -15,7 +15,17 @@ from src.triage.config import CONFIG_DIR, load_config
 from src.triage.crops import detect_crops
 from src.triage.expansion import expand_query
 from src.triage.gate import Gate, GateInput
-from src.triage.policy import question_signals
+from src.triage.policy import QuestionSignals, question_signals
+
+
+def _union_signals(*items: QuestionSignals) -> QuestionSignals:
+    """Preserve every original/translated safety keyword without duplicate terms."""
+    merged = QuestionSignals()
+    for field in QuestionSignals.__dataclass_fields__:
+        setattr(merged, field, list(dict.fromkeys(
+            term for item in items for term in getattr(item, field)
+        )))
+    return merged
 
 
 @lru_cache(maxsize=1)
@@ -48,16 +58,32 @@ class TriageEngine:
         return engine
 
     def triage(self, text: str, district: str | None = None, crop: str | None = None,
-               month: int | None = None) -> dict:
+               month: int | None = None, *, translated_text: str | None = None,
+               retrieval_mode: str = "expanded") -> dict:
         start = time.perf_counter()
         text = (text or "").strip()
-        # Marathi/Hindi questions get English glossary terms appended before
-        # embedding and classification; the gate's signals read the original.
-        expanded = expand_query(text)
-        vec = self.embed([expanded])[0]
-        signals = question_signals(text)
-        crops_mentioned = detect_crops(text)
-        prediction = self.classifier.predict_one(expanded, vec)
+        if retrieval_mode not in {"plain", "expanded", "translate"}:
+            raise ValueError("retrieval_mode must be plain, expanded, or translate")
+        is_devanagari = any("\u0900" <= char <= "\u097f" for char in text)
+        if retrieval_mode == "translate" and is_devanagari and not (translated_text or "").strip():
+            raise ValueError("translated_text is required for translate-first retrieval")
+        # Keep the historic expanded path as the default. English is unchanged
+        # for all modes; translation affects retrieval/classification only.
+        if not is_devanagari:
+            retrieval_text = text
+        elif retrieval_mode == "plain":
+            retrieval_text = text
+        elif retrieval_mode == "translate":
+            retrieval_text = translated_text.strip()
+        else:
+            retrieval_text = expand_query(text)
+        vec = self.embed([retrieval_text])[0]
+        original_signals = question_signals(text)
+        signals = _union_signals(original_signals, question_signals(translated_text)) \
+            if translated_text and is_devanagari else original_signals
+        translated_crops = detect_crops(translated_text) if is_devanagari and translated_text else []
+        crops_mentioned = list(dict.fromkeys(detect_crops(text) + translated_crops))
+        prediction = self.classifier.predict_one(retrieval_text, vec)
 
         # Resolve the crop once so retrieval can boost matching records.
         probe = GateInput(text, signals, crops_mentioned, prediction, hits=[], profile_crop=crop)
@@ -69,9 +95,14 @@ class TriageEngine:
             GateInput(text, signals, crops_mentioned, prediction, hits, profile_crop=crop)
         )
         out = decision.to_dict()
+        query = {"text": text, "district": district, "crop": crop, "month": month, "season": season,
+                 "retrieval_text": retrieval_text}
+        if retrieval_mode != "expanded":
+            query["retrieval_mode"] = retrieval_mode
+        if translated_text and is_devanagari:
+            query["translated_text"] = translated_text
         out.update({
-            "query": {"text": text, "district": district, "crop": crop, "month": month, "season": season,
-                      "retrieval_text": expanded},
+            "query": query,
             "prediction": prediction,
             "signals": {
                 "live_market": signals.live_market,
