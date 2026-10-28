@@ -61,6 +61,13 @@ def test_console_page_is_served(client):
     assert "KCC Triage Console" in r.text
 
 
+def test_farmer_chat_page_is_served_separately(client):
+    response = client.get("/chat")
+    assert response.status_code == 200
+    assert "KCC Farmer Helpline" in response.text
+    assert "Conversation messages" in response.text
+
+
 def test_health(client):
     assert client.get("/api/health").json() == {"status": "ok", "kb_records": 3}
 

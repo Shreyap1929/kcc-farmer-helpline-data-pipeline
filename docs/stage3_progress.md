@@ -21,3 +21,10 @@
 - Added mocked endpoint tests for typed fallback, missing sessions, expert-case hiding, voice upload/audio fetch, and unavailable speech services. `tests/test_api.py`: **14 passed**.
 - Added the required `python-multipart==0.0.20` parser to requirements and installed it into the existing Python 3.13.12 venv; no Stage 2 build was run.
 - Next: Phase 4 farmer chat UI.
+
+## Phase 4 - Farmer chat UI
+
+- Added a standalone mobile-first `/chat` page with language selection, typed chat, MediaRecorder voice upload, playback, timer, keyboard support, dark mode, and text-only error handling. `/` and its operator console are unchanged.
+- The design evaluator returned **PASS** after contrast and conversation-log accessibility fixes. Browser checks at 1400, 390, and 375 CSS pixels reported no horizontal overflow; the dark send-button hover is high contrast.
+- Live API/browser recording and the requested screenshot set remain unverified: the page was opened as a local file, so same-origin API calls were blocked, and no microphone permission check was run.
+- Next: Phase 5 translate-first experiment; model-backed evaluation depends on the existing Stage 2 runtime artifacts, which are currently absent.

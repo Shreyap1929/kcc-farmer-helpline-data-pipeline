@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="mr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f0e6">
+  <title>KCC Farmer Helpline · Chat</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #f3f0e6;
+      --paper-mark: #e9e4d7;
+      --sheet: #fffdf7;
+      --sheet-raised: #ffffff;
+      --ink: #20291f;
+      --muted: #5a6657;
+      --faint: #768071;
+      --line: #d9ddcf;
+      --leaf: #285b38;
+      --leaf-dark: #1c4329;
+      --leaf-soft: #e3eee2;
+      --farmer: #e9e5d8;
+      --saffron: #bd6a19;
+      --saffron-soft: #f8ead5;
+      --danger: #a43b2c;
+      --danger-soft: #f7e7e1;
+      --focus: #bd6a19;
+      --shadow: 0 14px 45px rgba(58, 58, 37, .09), 0 2px 7px rgba(58, 58, 37, .05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #151a15;
+        --paper-mark: #20271f;
+        --sheet: #1d241d;
+        --sheet-raised: #242d24;
+        --ink: #e9eee5;
+        --muted: #b7c1b2;
+        --faint: #9aa694;
+        --line: #394438;
+        --leaf: #a5d5a9;
+        --leaf-dark: #153c24;
+        --leaf-soft: #293d2c;
+        --farmer: #30372d;
+        --saffron: #f0b36b;
+        --saffron-soft: #443521;
+        --danger: #f2a293;
+        --danger-soft: #472923;
+        --focus: #f0b36b;
+        --shadow: 0 14px 45px rgba(0, 0, 0, .28), 0 2px 7px rgba(0, 0, 0, .2);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; min-height: 100%; background: var(--paper); }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font: 16px/1.55 "Nirmala UI", "Noto Sans Devanagari", "Mangal", "Kohinoor Devanagari", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 0%, color-mix(in srgb, var(--paper-mark) 62%, transparent), transparent 34rem),
+        radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--saffron-soft) 35%, transparent), transparent 28rem),
+        var(--paper);
+      -webkit-font-smoothing: antialiased;
+    }
+    button, textarea, select { font: inherit; }
+    button { color: inherit; }
+    .shell { width: min(100%, 1440px); min-height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
+    .topbar {
+      min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px clamp(16px, 4vw, 52px); border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--sheet) 88%, transparent);
+    }
+    .identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark { width: 42px; height: 42px; display: grid; place-items: center; flex: none; color: #fff; background: var(--leaf-dark); border-radius: 13px 13px 13px 5px; box-shadow: 0 4px 11px color-mix(in srgb, var(--leaf) 23%, transparent); }
+    .mark svg { width: 27px; height: 27px; }
+    .brand-copy { min-width: 0; }
+    .brand-copy h1 { margin: 0; font-size: 17px; line-height: 1.2; letter-spacing: -.02em; font-weight: 750; }
+    .brand-copy p { margin: 3px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.2; }
+    .top-actions { display: flex; align-items: center; gap: clamp(9px, 2vw, 22px); }
+    .service-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .service-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #8c9688; box-shadow: 0 0 0 3px color-mix(in srgb, #8c9688 16%, transparent); }
+    .service-status[data-state="ready"]::before { background: #39834e; box-shadow: 0 0 0 3px color-mix(in srgb, #39834e 17%, transparent); }
+    .service-status[data-state="error"]::before { background: var(--danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent); }
+    .language { display: flex; align-items: center; gap: 7px; }
+    .language label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .language select { max-width: 145px; min-height: 40px; padding: 7px 29px 7px 10px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--sheet-raised); font-size: 13px; font-weight: 650; }
+    main { flex: 1; min-height: 0; padding: clamp(14px, 3vw, 34px) 16px 20px; display: flex; justify-content: center; }
+    .conversation {
+      width: min(100%, 900px); min-height: min(690px, calc(100vh - 126px)); align-self: stretch;
+      display: flex; flex-direction: column; overflow: hidden; background: var(--sheet); border: 1px solid var(--line);
+      border-radius: 22px; box-shadow: var(--shadow);
+    }
+    .conversation-head { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 22px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--sheet) 93%, var(--leaf-soft)); }
+    .conversation-title { min-width: 0; }
+    .conversation-title h2 { margin: 0; font-size: 15px; line-height: 1.3; }
+    .conversation-title p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .privacy-note { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .privacy-note svg { width: 15px; height: 15px; color: var(--leaf); }
+    .messages { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 28px clamp(14px, 5vw, 54px) 24px; scroll-behavior: smooth; }
+    .welcome { max-width: 570px; margin: 0 auto 27px; text-align: center; animation: arrive .4s ease-out both; }
+    .welcome-art { width: 55px; height: 55px; display: grid; place-items: center; margin: 2px auto 13px; border: 1px solid color-mix(in srgb, var(--leaf) 22%, var(--line)); border-radius: 18px 18px 18px 7px; color: var(--leaf); background: var(--leaf-soft); }
+    .welcome-art svg { width: 31px; height: 31px; }
+    .welcome h3 { margin: 0 0 5px; font-size: clamp(19px, 3vw, 23px); letter-spacing: -.025em; line-height: 1.35; }
+    .welcome p { margin: 0 auto; max-width: 470px; color: var(--muted); font-size: 14px; }
+    .sample-questions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 17px; }
+    .sample-questions button { padding: 7px 11px; background: transparent; border: 1px solid var(--line); border-radius: 8px 13px 13px 13px; color: var(--muted); font-size: 12px; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .15s ease; }
+    .sample-questions button:hover { border-color: var(--leaf); background: var(--leaf-soft); color: var(--ink); transform: translateY(-1px); }
+    .thread { display: flex; flex-direction: column; gap: 16px; }
+    .message { max-width: min(82%, 620px); display: flex; flex-direction: column; align-items: flex-start; animation: arrive .24s ease-out both; }
+    .message.farmer { align-self: flex-end; align-items: flex-end; }
+    .message.assistant { align-self: flex-start; }
+    .speaker { padding: 0 4px 4px; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+    .bubble { max-width: 100%; padding: 11px 15px; border: 1px solid var(--line); background: var(--farmer); border-radius: 16px 16px 5px 16px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .assistant .bubble { background: var(--leaf-soft); border-color: color-mix(in srgb, var(--leaf) 17%, var(--line)); border-radius: 16px 16px 16px 5px; }
+    .bubble p { margin: 0; }
+    .bubble .source-note { margin-top: 7px; padding-top: 7px; border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent); color: var(--muted); font-size: 11px; }
+    .voice-player { width: min(260px, 100%); display: block; height: 38px; margin-top: 9px; accent-color: var(--leaf); }
+    .voice-fallback { display: flex; gap: 7px; align-items: flex-start; margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .voice-fallback svg { width: 16px; height: 16px; flex: none; color: var(--saffron); }
+    .typing { display: inline-flex; gap: 4px; align-items: center; min-height: 20px; }
+    .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); opacity: .6; animation: pulse 1s infinite ease-in-out; }
+    .typing i:nth-child(2) { animation-delay: .12s; }.typing i:nth-child(3) { animation-delay: .24s; }
+    .inline-alert { margin: 0 auto 14px; max-width: 640px; padding: 10px 13px; border: 1px solid color-mix(in srgb, var(--danger) 26%, var(--line)); border-radius: 10px; background: var(--danger-soft); color: var(--danger); font-size: 13px; }
+    .composer-area { flex: none; padding: 14px clamp(12px, 4vw, 34px) max(15px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: color-mix(in srgb, var(--sheet) 95%, var(--paper)); }
+    .recording-status { min-height: 0; display: flex; align-items: center; justify-content: center; gap: 8px; overflow: hidden; color: var(--danger); font-size: 12px; font-weight: 700; transition: min-height .15s ease, margin .15s ease; }
+    .recording-status.active { min-height: 28px; margin: -4px 0 8px; }
+    .recording-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1s infinite; }
+    .composer { width: min(100%, 760px); margin: 0 auto; display: flex; align-items: flex-end; gap: 9px; }
+    .text-box { flex: 1; min-width: 0; position: relative; }
+    .text-box textarea { width: 100%; min-height: 48px; max-height: 150px; resize: none; display: block; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--sheet-raised); color: var(--ink); line-height: 1.45; outline: none; }
+    .text-box textarea::placeholder { color: var(--faint); opacity: 1; }
+    .icon-button, .send-button { height: 48px; width: 48px; flex: none; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--sheet-raised); color: var(--leaf); cursor: pointer; transition: background .15s ease, transform .15s ease, border-color .15s ease; }
+    .icon-button:hover:not(:disabled) { background: var(--leaf-soft); border-color: var(--leaf); transform: translateY(-1px); }
+    .icon-button.recording { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+    .icon-button:disabled, .send-button:disabled { opacity: .52; cursor: not-allowed; }
+    .send-button { border-color: var(--leaf-dark); background: var(--leaf-dark); color: #fff; }
+    .send-button:hover:not(:disabled) { background: color-mix(in srgb, var(--leaf) 86%, #000); transform: translateY(-1px); }
+    @media (prefers-color-scheme: dark) {
+      .send-button:hover:not(:disabled) { border-color: #285b38; background: #285b38; }
+    }
+    .icon-button svg, .send-button svg { width: 21px; height: 21px; }
+    :focus-visible { outline: 3px solid var(--focus) !important; outline-offset: 3px; }
+    .composer-hint { width: min(100%, 760px); min-height: 18px; margin: 7px auto 0; display: flex; justify-content: space-between; gap: 12px; color: var(--faint); font-size: 11px; }
+    .composer-hint span:last-child { text-align: right; }
+    .noscript { max-width: 760px; margin: 20px auto; padding: 12px; color: var(--danger); }
+    @keyframes arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { opacity: .45; transform: scale(.88); } 50% { opacity: 1; transform: scale(1); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+    @media (max-width: 600px) {
+      .topbar { min-height: 65px; padding: 9px 13px; }
+      .mark { width: 37px; height: 37px; border-radius: 11px 11px 11px 4px; }
+      .brand-copy h1 { font-size: 15px; }.brand-copy p { font-size: 10.5px; }
+      .service-status { width: 9px; height: 9px; overflow: hidden; gap: 0; font-size: 0; }
+      .service-status::before { flex: none; }
+      .language { gap: 0; }.language label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      .language select { min-height: 37px; width: 112px; padding: 6px 8px; font-size: 12px; }
+      main { min-height: 0; padding: 0; }
+      .conversation { width: 100%; min-height: calc(100dvh - 65px); border: 0; border-radius: 0; box-shadow: none; }
+      .conversation-head { padding: 11px 15px; }.privacy-note { font-size: 10px; }.privacy-note svg { width: 14px; }
+      .messages { padding: 22px 13px 17px; }
+      .welcome { margin-bottom: 22px; }.welcome-art { width: 48px; height: 48px; margin-bottom: 10px; }.welcome-art svg { width: 27px; }
+      .welcome p { font-size: 13px; }.sample-questions { gap: 6px; margin-top: 13px; }.sample-questions button { padding: 6px 9px; font-size: 11px; }
+      .message { max-width: 91%; }.bubble { padding: 10px 13px; font-size: 15px; }
+      .composer-area { padding: 10px 10px max(11px, env(safe-area-inset-bottom)); }
+      .composer { gap: 7px; }.icon-button, .send-button { width: 44px; height: 46px; border-radius: 13px; }
+      .text-box textarea { min-height: 46px; padding: 11px 12px; font-size: 15px; }
+      .composer-hint { margin-top: 5px; font-size: 10px; }
+    }
+    @media (max-width: 365px) { .privacy-note { display: none; }.sample-questions button { max-width: 100%; }.composer-hint span:last-child { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M26.5 5.5C16.1 6.1 8.6 10.2 7 18.2c-.7 3.3 1.3 6.1 4.4 6.1 7.3 0 13.3-7.5 15.1-18.8Z" fill="currentColor"/><path d="M5.5 27c3.1-5 7.7-9 14-12.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <div class="brand-copy"><h1>KCC शेतकरी मदत</h1><p>Kisan Call Centre · Maharashtra</p></div>
+      </div>
+      <div class="top-actions">
+        <span class="service-status" id="serviceStatus" data-state="loading" role="status" aria-live="polite">Connecting</span>
+        <div class="language"><label for="language">भाषा / Language</label><select id="language" aria-label="Choose language"><option value="mr">मराठी</option><option value="hi">हिंदी</option><option value="en">English</option></select></div>
+      </div>
+    </header>
+    <main>
+      <section class="conversation" aria-label="Farmer helpline chat">
+        <div class="conversation-head">
+          <div class="conversation-title"><h2 id="conversationHeading">तुमचा प्रश्न सांगा</h2><p id="conversationSubheading">शेतीविषयक मदतीसाठी KCC शी बोला</p></div>
+          <div class="privacy-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2.5 16 5v4.8c0 3.8-2.4 6.2-6 7.7-3.6-1.5-6-3.9-6-7.7V5l6-2.5Z" stroke="currentColor" stroke-width="1.5"/><path d="m7.2 9.7 1.8 1.8 3.8-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="privacyText">रेकॉर्डिंग साठवली जात नाही</span></div>
+        </div>
+        <div class="messages" id="messages" role="log" tabindex="0" aria-label="संवादातील संदेश / Conversation messages" aria-live="polite" aria-relevant="additions text">
+          <div class="welcome" id="welcome">
+            <div class="welcome-art" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 27V14m0 5c-5.7 0-9-3-9-8 5.3 0 9 2.3 9 8Zm0-3c0-5.3 3.4-8.3 9-8.3 0 5.2-3.1 8.3-9 8.3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 27h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <h3 id="welcomeTitle">नमस्कार! शेतीबद्दल काय मदत हवी?</h3>
+            <p id="welcomeBody">तुमचा प्रश्न मराठीत, हिंदीत किंवा इंग्रजीत लिहा किंवा आवाजात सांगा. उत्तर उपलब्ध KCC नोंदींवर आधारित असेल.</p>
+            <div class="sample-questions" id="sampleQuestions">
+              <button type="button" data-message="कापसाच्या पिकाबद्दल माहिती हवी आहे">कापूस</button>
+              <button type="button" data-message="माझ्या पिकाची पाने पिवळी पडत आहेत">पिकाची लक्षणे</button>
+              <button type="button" data-message="गहू पिकाबद्दल माहिती हवी आहे">गहू</button>
+            </div>
+          </div>
+          <div class="inline-alert" id="alert" role="alert" hidden></div>
+          <div class="thread" id="thread"></div>
+        </div>
+        <div class="composer-area">
+          <div class="recording-status" id="recordingStatus" aria-live="polite"></div>
+          <form class="composer" id="composer" autocomplete="off">
+            <button class="icon-button" id="recordButton" type="button" aria-label="Record a voice message" title="Record voice message">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <div class="text-box"><label for="messageText" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">तुमचा प्रश्न / Your question</label><textarea id="messageText" rows="1" maxlength="1000" placeholder="तुमचा प्रश्न इथे लिहा…" aria-describedby="composerHint"></textarea></div>
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send message" title="Send message">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 16 8-16 8 2.2-7.2L14 12l-7.8-.8L4 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M6.2 12H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+          </form>
+          <div class="composer-hint" id="composerHint"><span id="writeHint">आवाजाने सांगण्यासाठी माइक निवडा</span><span id="keyboardHint">Enter to send · Shift+Enter for a new line</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <noscript><p class="noscript">This chat needs JavaScript enabled. / हा संवाद वापरण्यासाठी JavaScript सुरू करा.</p></noscript>
+  <script>
+    (() => {
+      "use strict";
+      const $ = (selector) => document.querySelector(selector);
+      const language = $("#language");
+      const thread = $("#thread");
+      const messages = $("#messages");
+      const input = $("#messageText");
+      const sendButton = $("#sendButton");
+      const recordButton = $("#recordButton");
+      const status = $("#serviceStatus");
+      const alertBox = $("#alert");
+      const recordingStatus = $("#recordingStatus");
+      const welcome = $("#welcome");
+      const languageCopy = {
+        mr: { heading: "तुमचा प्रश्न सांगा", subheading: "शेतीविषयक मदतीसाठी KCC शी बोला", privacy: "रेकॉर्डिंग साठवली जात नाही", title: "नमस्कार! शेतीबद्दल काय मदत हवी?", body: "तुमचा प्रश्न मराठीत, हिंदीत किंवा इंग्रजीत लिहा किंवा आवाजात सांगा. उत्तर उपलब्ध KCC नोंदींवर आधारित असेल.", placeholder: "तुमचा प्रश्न इथे लिहा…", write: "आवाजाने सांगण्यासाठी माइक निवडा", micUnavailable: "या ब्राउझरमध्ये आवाज रेकॉर्डिंग उपलब्ध नाही. कृपया प्रश्न लिहा.", farmer: "तुम्ही", assistant: "KCC मदत", connecting: "जोडत आहे", ready: "जोडले", offline: "सेवा उपलब्ध नाही", sending: "पाठवत आहे…", recording: "रेकॉर्डिंग सुरू", stop: "रेकॉर्डिंग थांबवा", record: "आवाज संदेश रेकॉर्ड करा", fallback: "आवाजातील उत्तर उपलब्ध नाही. कृपया वरील मजकूर वाचा.", newSession: "भाषा बदलली. नवीन संवाद सुरू झाला.", error: "सध्या सेवा उपलब्ध नाही. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.", micError: "माइक सुरू करता आला नाही. परवानगी तपासा किंवा प्रश्न लिहा.", empty: "कृपया आधी तुमचा प्रश्न लिहा." },
+        hi: { heading: "अपना सवाल बताइए", subheading: "खेती से जुड़ी मदद के लिए KCC से बात करें", privacy: "रिकॉर्डिंग सहेजी नहीं जाती", title: "नमस्ते! खेती में किस मदद की ज़रूरत है?", body: "अपना सवाल मराठी, हिंदी या अंग्रेज़ी में लिखें या बोलें। जवाब उपलब्ध KCC रिकॉर्ड पर आधारित होगा।", placeholder: "अपना सवाल यहाँ लिखें…", write: "बोलने के लिए माइक चुनें", micUnavailable: "इस ब्राउज़र में आवाज़ रिकॉर्डिंग उपलब्ध नहीं है। कृपया सवाल लिखें।", farmer: "आप", assistant: "KCC सहायता", connecting: "जुड़ रहा है", ready: "जुड़ा हुआ", offline: "सेवा उपलब्ध नहीं", sending: "भेज रहे हैं…", recording: "रिकॉर्डिंग चालू", stop: "रिकॉर्डिंग रोकें", record: "आवाज़ संदेश रिकॉर्ड करें", fallback: "आवाज़ में जवाब उपलब्ध नहीं है। कृपया ऊपर दिया जवाब पढ़ें।", newSession: "भाषा बदली। नई बातचीत शुरू हुई।", error: "सेवा अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद फिर कोशिश करें।", micError: "माइक शुरू नहीं हो सका। अनुमति जाँचें या सवाल लिखें।", empty: "कृपया पहले अपना सवाल लिखें." },
+        en: { heading: "Ask your question", subheading: "Talk to KCC for farming support", privacy: "Recordings are not saved", title: "Hello! What would you like help with?", body: "Type or speak in Marathi, Hindi, or English. Answers are based on available KCC records.", placeholder: "Write your question here…", write: "Choose the microphone to speak", micUnavailable: "Voice recording is unavailable in this browser. Please type your question.", farmer: "You", assistant: "KCC support", connecting: "Connecting", ready: "Connected", offline: "Service unavailable", sending: "Sending…", recording: "Recording", stop: "Stop recording", record: "Record a voice message", fallback: "Voice playback is unavailable. Please read the reply above.", newSession: "Language changed. A new conversation has started.", error: "The service is unavailable right now. Please try again shortly.", micError: "Could not start the microphone. Check permission or type your question.", empty: "Please write your question first." }
+      };
+      let sessionId = null;
+      let busy = false;
+      let recorder = null;
+      let stream = null;
+      let chunks = [];
+      let recordTimer = null;
+      let recordStarted = 0;
+      let timerTick = null;
+      let activeAudio = null;
+      let sessionGeneration = 0;
+      const copy = () => languageCopy[language.value] || languageCopy.mr;
+
+      function setStatus(state) {
+        status.dataset.state = state;
+        status.textContent = state === "ready" ? copy().ready : state === "error" ? copy().offline : copy().connecting;
+      }
+      function setAlert(text) {
+        alertBox.textContent = text || "";
+        alertBox.hidden = !text;
+        if (text) messages.scrollTop = messages.scrollHeight;
+      }
+      function setBusy(value) {
+        busy = value;
+        sendButton.disabled = value;
+        recordButton.disabled = value || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder;
+        input.disabled = value;
+        if (value) sendButton.setAttribute("aria-label", copy().sending);
+        else sendButton.setAttribute("aria-label", "Send message");
+      }
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+      }
+      function scrollToBottom() { requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; }); }
+      function addMessage(who, text, options = {}) {
+        welcome.hidden = true;
+        const wrap = document.createElement("article");
+        wrap.className = `message ${who}`;
+        const label = document.createElement("div");
+        label.className = "speaker";
+        label.textContent = who === "farmer" ? copy().farmer : copy().assistant;
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        const p = document.createElement("p");
+        p.textContent = text;
+        bubble.appendChild(p);
+        if (options.audioUrl) {
+          const player = document.createElement("audio");
+          player.className = "voice-player";
+          player.controls = true;
+          player.preload = "none";
+          player.setAttribute("aria-label", "Play voice reply");
+          player.src = options.audioUrl;
+          bubble.appendChild(player);
+        } else if (options.voiceUnavailable) {
+          const fallback = document.createElement("div");
+          fallback.className = "voice-fallback";
+          fallback.innerHTML = '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.5"/><path d="M10 6.3v4.2m0 2.8h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+          const note = document.createElement("span");
+          note.textContent = copy().fallback;
+          fallback.appendChild(note);
+          bubble.appendChild(fallback);
+        }
+        wrap.append(label, bubble);
+        thread.appendChild(wrap);
+        scrollToBottom();
+        return wrap;
+      }
+      function addTyping() {
+        welcome.hidden = true;
+        const wrap = document.createElement("article");
+        wrap.className = "message assistant";
+        wrap.setAttribute("aria-label", copy().sending);
+        const label = document.createElement("div");
+        label.className = "speaker";
+        label.textContent = copy().assistant;
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        bubble.innerHTML = '<span class="typing" aria-hidden="true"><i></i><i></i><i></i></span>';
+        wrap.append(label, bubble);
+        thread.appendChild(wrap);
+        scrollToBottom();
+        return wrap;
+      }
+      async function createSession(showNotice = false) {
+        const generation = ++sessionGeneration;
+        setStatus("loading");
+        try {
+          const response = await fetch("/api/chat/session", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ language: language.value })
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          if (generation !== sessionGeneration) return;
+          if (!result.session_id) throw new Error("Missing session id");
+          sessionId = result.session_id;
+          setStatus("ready");
+          if (showNotice) {
+            thread.replaceChildren();
+            welcome.hidden = false;
+            setAlert(copy().newSession);
+            window.setTimeout(() => { if (alertBox.textContent === copy().newSession) setAlert(""); }, 3800);
+          }
+        } catch (_) {
+          if (generation !== sessionGeneration) return;
+          sessionId = null;
+          setStatus("error");
+          if (showNotice) setAlert(copy().error);
+        }
+      }
+      function updateLanguage() {
+        const t = copy();
+        document.documentElement.lang = language.value;
+        $("#conversationHeading").textContent = t.heading;
+        $("#conversationSubheading").textContent = t.subheading;
+        $("#privacyText").textContent = t.privacy;
+        $("#welcomeTitle").textContent = t.title;
+        $("#welcomeBody").textContent = t.body;
+        input.placeholder = t.placeholder;
+        $("#writeHint").textContent = t.write;
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) $("#writeHint").textContent = t.micUnavailable;
+        recordButton.setAttribute("aria-label", t.record);
+        recordButton.title = t.record;
+        if (status.dataset.state !== "ready") setStatus(status.dataset.state === "error" ? "error" : "loading");
+        if (!recorder || recorder.state !== "recording") recordingStatus.textContent = "";
+        [...thread.querySelectorAll(".speaker")].forEach((node) => { node.textContent = node.parentElement.classList.contains("farmer") ? t.farmer : t.assistant; });
+        [...$("#sampleQuestions").querySelectorAll("button")].forEach((button) => {
+          const phrases = {
+            mr: ["कापूस", "पिकाची लक्षणे", "गहू"], hi: ["कपास", "फसल के लक्षण", "गेहूँ"], en: ["Cotton", "Crop symptoms", "Wheat"]
+          }[language.value];
+          button.textContent = phrases[[...button.parentElement.children].indexOf(button)];
+        });
+      }
+      function setRecordingLabel() {
+        if (!recorder || recorder.state !== "recording") return;
+        const seconds = Math.floor((Date.now() - recordStarted) / 1000);
+        const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const ss = String(seconds % 60).padStart(2, "0");
+        recordingStatus.classList.add("active");
+        recordingStatus.innerHTML = `<span class="recording-dot" aria-hidden="true"></span><span>${escapeHTML(copy().recording)} · ${mm}:${ss}</span>`;
+      }
+      function releaseMicrophone() {
+        if (timerTick) window.clearInterval(timerTick);
+        timerTick = null;
+        if (stream) stream.getTracks().forEach((track) => track.stop());
+        stream = null;
+        recorder = null;
+        recordButton.classList.remove("recording");
+        recordButton.setAttribute("aria-label", copy().record);
+        recordButton.title = copy().record;
+        recordingStatus.classList.remove("active");
+        recordingStatus.textContent = "";
+        recordButton.disabled = busy;
+      }
+      async function startRecording() {
+        if (busy || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+          if (!window.MediaRecorder || !navigator.mediaDevices?.getUserMedia) setAlert(copy().micError);
+          return;
+        }
+        setAlert("");
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported?.(type));
+          recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+          chunks = [];
+          recorder.ondataavailable = (event) => { if (event.data && event.data.size) chunks.push(event.data); };
+          recorder.onerror = () => { releaseMicrophone(); setAlert(copy().micError); };
+          recorder.onstop = async () => {
+            const blob = new Blob(chunks, { type: recorder?.mimeType || chunks[0]?.type || "audio/webm" });
+            chunks = [];
+            releaseMicrophone();
+            if (!blob.size) { setAlert(copy().micError); return; }
+            await sendVoice(blob);
+          };
+          recordStarted = Date.now();
+          recorder.start();
+          recordButton.classList.add("recording");
+          recordButton.setAttribute("aria-label", copy().stop);
+          recordButton.title = copy().stop;
+          recordButton.setAttribute("aria-pressed", "true");
+          setRecordingLabel();
+          timerTick = window.setInterval(setRecordingLabel, 250);
+          recordTimer = window.setTimeout(() => stopRecording(), 60000);
+        } catch (_) {
+          releaseMicrophone();
+          setAlert(copy().micError);
+        }
+      }
+      function stopRecording() {
+        if (recordTimer) window.clearTimeout(recordTimer);
+        recordTimer = null;
+        if (recorder && recorder.state === "recording") {
+          recordButton.setAttribute("aria-pressed", "false");
+          recorder.stop();
+        }
+      }
+      function fileExtension(type) {
+        if (type.includes("ogg")) return "ogg";
+        if (type.includes("mp4")) return "mp4";
+        if (type.includes("wav")) return "wav";
+        return "webm";
+      }
+      async function sendVoice(blob) {
+        if (!sessionId) { setAlert(copy().error); return; }
+        setBusy(true);
+        setAlert("");
+        const loading = addTyping();
+        try {
+          const form = new FormData();
+          form.append("session_id", sessionId);
+          form.append("audio", blob, `voice.${fileExtension(blob.type)}`);
+          const response = await fetch("/api/chat/voice", { method: "POST", body: form });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          loading.remove();
+          if (result.transcript) addMessage("farmer", result.transcript);
+          addMessage("assistant", result.reply || copy().error, { audioUrl: result.audio_url, voiceUnavailable: !result.audio_url });
+          setStatus("ready");
+        } catch (_) {
+          loading.remove();
+          setStatus("error");
+          setAlert(copy().error);
+        } finally {
+          setBusy(false);
+          input.focus({ preventScroll: true });
+        }
+      }
+      async function sendText(text) {
+        if (!text.trim()) { input.focus(); setAlert(copy().empty); return; }
+        if (busy) return;
+        if (!sessionId) await createSession();
+        if (!sessionId) { setAlert(copy().error); return; }
+        setAlert("");
+        addMessage("farmer", text.trim());
+        setBusy(true);
+        const loading = addTyping();
+        try {
+          const response = await fetch("/api/chat/message", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId, text: text.trim() })
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          loading.remove();
+          addMessage("assistant", result.reply || copy().error);
+          setStatus("ready");
+        } catch (_) {
+          loading.remove();
+          setStatus("error");
+          setAlert(copy().error);
+        } finally {
+          setBusy(false);
+          input.focus({ preventScroll: true });
+        }
+      }
+      $("#composer").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const text = input.value;
+        if (!text.trim()) { setAlert(copy().empty); input.focus(); return; }
+        input.value = "";
+        input.style.height = "auto";
+        sendText(text);
+      });
+      input.addEventListener("input", () => {
+        input.style.height = "auto";
+        input.style.height = `${Math.min(input.scrollHeight, 150)}px`;
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+          event.preventDefault();
+          $("#composer").requestSubmit();
+        }
+      });
+      recordButton.addEventListener("click", () => {
+        if (recorder && recorder.state === "recording") stopRecording();
+        else startRecording();
+      });
+      language.addEventListener("change", () => {
+        if (recorder && recorder.state === "recording") stopRecording();
+        updateLanguage();
+        createSession(true);
+      });
+      $("#sampleQuestions").addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-message]");
+        if (!button || busy) return;
+        const localized = {
+          mr: ["कापसाच्या पिकाबद्दल माहिती हवी आहे", "माझ्या पिकाची पाने पिवळी पडत आहेत", "गहू पिकाबद्दल माहिती हवी आहे"],
+          hi: ["मुझे कपास की फसल के बारे में जानकारी चाहिए", "मेरी फसल की पत्तियाँ पीली पड़ रही हैं", "मुझे गेहूँ की फसल के बारे में जानकारी चाहिए"],
+          en: ["I need information about cotton farming", "The leaves on my crop are turning yellow", "I need information about wheat farming"]
+        }[language.value];
+        const index = [...button.parentElement.children].indexOf(button);
+        sendText(localized[index]);
+      });
+      window.addEventListener("pagehide", () => {
+        if (recordTimer) window.clearTimeout(recordTimer);
+        if (recorder && recorder.state === "recording") recorder.stop();
+        if (stream) stream.getTracks().forEach((track) => track.stop());
+        if (activeAudio) activeAudio.pause();
+      });
+      updateLanguage();
+      setBusy(false);
+      createSession();
+    })();
+  </script>
+</body>
+</html>
