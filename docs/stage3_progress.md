@@ -28,3 +28,11 @@
 - The design evaluator returned **PASS** after contrast and conversation-log accessibility fixes. Browser checks at 1400, 390, and 375 CSS pixels reported no horizontal overflow; the dark send-button hover is high contrast.
 - Live API/browser recording and the requested screenshot set remain unverified: the page was opened as a local file, so same-origin API calls were blocked, and no microphone permission check was run.
 - Next: Phase 5 translate-first experiment; model-backed evaluation depends on the existing Stage 2 runtime artifacts, which are currently absent.
+
+## Phase 5 - Translate-first experiment (measurement blocked)
+
+- Added opt-in `plain`, `expanded`, and `translate` query modes. In translate mode, retrieval/classification use English while the gate retains the original text and unions policy keywords/crops from its translation. Default behavior remains the existing glossary expansion; English query text is unchanged.
+- Added an evaluation runner for the held-out retrieval set and Marathi/Hindi gate probes, with a documented adoption criterion requiring better top-1 retrieval and no route-accuracy regression. Thresholds were not changed.
+- Offline retrieval-mode plus gate/policy tests: **108 passed**. `reports/stage3/translate_first_report.md` records the real blocker and unavailable measurements.
+- The approved build regenerated ignored `data/views/` (241 seconds) but failed before embeddings: `sentence_transformers` is absent; `torch` is also absent. The declared ranges are unpinned, and the user’s dependency choice is pending. Translate-first is not adopted.
+- Next: Phase 6 voice evaluation harness; continue with existing synthetic TTS clips where available, and return to the experiment if dependencies are approved.
