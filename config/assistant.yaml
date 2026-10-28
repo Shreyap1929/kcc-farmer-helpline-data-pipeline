@@ -29,4 +29,4 @@ review:
   # Minimum same-language embedding similarity to reuse an expert's answer for a new
   # question. Chosen by python -m src.review.calibrate_reuse
   # (reports/stage4/reviewed_reuse_report.md).
-  reuse_min_similarity: 0.95
+  reuse_min_similarity: 0.936

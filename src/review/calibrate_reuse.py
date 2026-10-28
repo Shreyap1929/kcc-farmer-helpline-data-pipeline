@@ -6,9 +6,11 @@ built by `python -m src.triage.crosslingual_parity`):
 
 - same question: the parity Marathi/Hindi rephrasing vs a second, independently worded
   rephrasing of the same English question;
-- different question: two rephrasings in the same language whose English questions got
-  answers that are not close (Stage 2 closeness < answer_close_threshold), i.e. a reused
-  answer would be wrong.
+- different question: two rephrasings in the same language whose English questions the
+  Stage 2 classifier puts in different query types (varieties vs sowing time vs water
+  management ...), i.e. a reused answer would answer the wrong question. (A first run
+  used answer closeness instead; it labelled identical questions "different" because two
+  advisors gave different variety lists, which Stage 2 showed happens ~62% of the time.)
 
 Rule: the lowest threshold at which no different-question pair (that also passes the
 production crop check) matches, plus a 0.01 margin. Recall on same-question pairs at that
@@ -24,12 +26,11 @@ import time
 import numpy as np
 
 from src.assistant.config import get_groq_client
-from src.triage.config import REPO_ROOT, load_config
+from src.triage.config import REPO_ROOT
 from src.triage.crops import detect_crops
 from src.triage.crosslingual_parity import CACHE, LANGS, _patient, _sample
 from src.triage.embeddings import embed_texts
 from src.triage.engine import TriageEngine
-from src.triage.evaluate import Closeness
 
 OUT = REPO_ROOT / "reports" / "stage4" / "reviewed_reuse_report.md"
 SECOND = REPO_ROOT / "data" / "runtime" / "reuse_paraphrases.json"
@@ -54,8 +55,6 @@ def _second_paraphrase(client, text: str, lang: str) -> str:
 def run() -> str:
     client = get_groq_client()
     engine = TriageEngine.load()
-    close_t = load_config()["gate"]["answer_close_threshold"]
-    closeness = Closeness(engine.retriever.records["ans_clean"].tolist())
     answerable, _ = _sample(engine)
     cache = json.loads(CACHE.read_text(encoding="utf-8"))
     second = json.loads(SECOND.read_text(encoding="utf-8")) if SECOND.exists() else {}
@@ -77,11 +76,11 @@ def run() -> str:
             crop_ok = set(detect_crops(native[i])) == set(detect_crops(b))
             lines_same.append((lang, float(va[i] @ vb[i]), crop_ok, native[i], b))
         sims = va @ va.T
-        answers = [q["answer"] for q in items]
+        qtypes = [engine.triage(q["text"])["prediction"]["query_type"]["label"] for q in items]
         for i in range(len(items)):
             for j in range(i + 1, len(items)):
-                if closeness([answers[i]], [answers[j]])[0] >= close_t:
-                    continue  # effectively the same question: reuse would be right
+                if qtypes[i] == qtypes[j]:
+                    continue  # same kind of question: reuse is not wrong by this measure
                 crop_ok = set(detect_crops(native[i])) == set(detect_crops(native[j]))
                 lines_diff.append((lang, float(sims[i, j]), crop_ok, native[i], native[j]))
 
@@ -94,7 +93,7 @@ def run() -> str:
         "Method in `src/review/calibrate_reuse.py`. Questions are machine-written Marathi/Hindi "
         "rephrasings of unseen English test-month questions; real repeat questions will be noisier.", "",
         "| Measure | Value |", "|---|---:|",
-        f"| Different-question pairs (answers not close), same language | {len(lines_diff)} |",
+        f"| Different-question pairs (different query type), same language | {len(lines_diff)} |",
         f"| ...that also pass the crop check | {len(diff_passing)} |",
         f"| Highest similarity among those | {diff_passing[0]:.3f} |" if diff_passing else "| Highest similarity | n/a |",
         f"| **Chosen threshold** (highest + {MARGIN}) | **{threshold}** |",

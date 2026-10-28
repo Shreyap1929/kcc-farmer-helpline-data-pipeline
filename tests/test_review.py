@@ -233,3 +233,12 @@ def test_expert_token_is_enforced_when_configured(api, monkeypatch):
     assert api.get("/api/expert/cases").status_code == 401
     assert api.get("/api/expert/cases", headers={"X-Expert-Token": "wrong"}).status_code == 401
     assert api.get("/api/expert/cases", headers={"X-Expert-Token": "s3cret"}).status_code == 200
+
+
+def test_marathi_answer_with_variety_codes_is_not_retranslated(store):
+    case_id = new_case(store)
+    calls = []
+    answer = "सोयाबीनचे सुधारित वाण: फुले संगम (KDS 726), JS 335, MACS 1188. प्रमाणित बियाणे वापरा."
+    result = resolve_case(store, case_id, action="answer", expert="Dr Patil", answer=answer,
+                          translator=lambda text, target: calls.append(text) or text)
+    assert calls == [] and result["reply_checks"]["localization"] == "not_needed"

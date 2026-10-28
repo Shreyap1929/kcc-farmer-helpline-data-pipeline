@@ -9,7 +9,39 @@ pipelines to refresh them, do not edit them by hand.
 | 1. Data cleaning | Shreya | Done | 2026-10-27 20:03 |
 | 2. Triage core (text) | Amir | Done | 2026-10-27 22:50 |
 | 3. Farmer chat and voice | Shreya (built), Amir (fixes + validation) | Done - fixed and measured end to end | 2026-10-28 |
-| 4. Expert review (queue, LangGraph workflow, expert desk, reply to farmer) | Amir | Done - first cut | 2026-10-28 |
+| 4. Expert review (queue, LangGraph workflow, expert desk, reply to farmer, answer reuse) | Amir | Done - first cut | 2026-10-28 22:25 |
+
+---
+
+## Stage 4b - Reusing expert answers for repeat questions
+
+**Done by Amir** - 2026-10-28, 22:05 to 22:25 IST
+Design: [docs/stage3_fixes_stage4_review.md, section 3b](docs/stage3_fixes_stage4_review.md)
+
+Marathi/Hindi farmers never get an auto-answer from the historical KB (parity 0/80), so
+every repeat question went back to an expert. Now a safe expert answer is reused for the
+same question asked again in the same language.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Reviewed-answer index | `src/review/reviewed_answers.py` | Same-language embedding match over answered, reusable cases; refuses chemical/time-sensitive answers, risky gate reasons, dose/price/weather/scheme questions, other language or crops |
+| Chat integration | `src/api/app.py`, `src/assistant/composer.py` | Served before a new case is opened, expert's words unchanged, "answered earlier by a KCC expert (case, date)" |
+| Expert controls | `src/api/review.py`, `expert.html` | Reuse count per case and in stats; "Stop reusing this answer" (`POST /api/expert/cases/{id}/retire`) |
+| Calibration | `src/review/calibrate_reuse.py` | Threshold from same- vs different-question paraphrase pairs |
+| Tests | `tests/test_reviewed_answers.py`, `tests/test_review.py` | 12 tests: every refusal condition, retire, the full API loop, no Marathi-to-Marathi retranslation |
+
+| Measure | Result |
+|---|---|
+| Threshold | **0.936** (`config/assistant.yaml` `review.reuse_min_similarity`) |
+| Same question, reworded, reuses the expert answer | **66/80 (82%)** |
+| Different question reuses it | **0/1,963** |
+| Full test suite | **217 passed, 0 failed** |
+| Live check (real model): expert answers a Marathi soybean-varieties question | Reworded question reused; sowing-time, dose and cotton questions refused |
+
+Caveats: machine-written paraphrases, threshold chosen on the pairs it is reported on,
+narrow margin (0.926 vs 0.964). Re-check on real repeat questions once the desk has a few
+hundred answered cases. A first calibration used the wrong definition of "different"
+(advisor answers not close) and would have set 0.99; the report explains why it was replaced.
 
 ---
 

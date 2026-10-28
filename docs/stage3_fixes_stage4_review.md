@@ -121,10 +121,19 @@ A reviewed answer is served instead of opening a new case only if **all** hold:
    `CROP_MISMATCH`, never for a dose, a high-risk topic or a chemical draft, and the
    question has no dose, price, weather or scheme words.
 3. Same language and exactly the same crops mentioned as the reviewed question.
-4. Same-language embedding similarity >= `review.reuse_min_similarity` (REUSE_THRESHOLD),
+4. Same-language embedding similarity >= `review.reuse_min_similarity` (**0.936**),
    calibrated so that no pair of different questions in the calibration set matches
    (`python -m src.review.calibrate_reuse`, `reports/stage4/reviewed_reuse_report.md`).
-   REUSE_RESULT
+   On 80 same-question pairs (two independent Marathi/Hindi paraphrases of one question)
+   and 1,963 different-question pairs (different query type, same crops): **66/80 (82%)
+   same questions reuse the expert's answer, 0/1,963 different questions do**. The margin
+   is narrow (closest different pair 0.926, e.g. "black turmeric varieties" vs "how to
+   grow black turmeric"; median same pair 0.964), the threshold was chosen on the same
+   pairs it is reported on, and the paraphrases are machine-written, so this must be
+   re-checked on real repeat questions. A first calibration that defined "different" as
+   "advisor answers not close" was wrong: identical questions counted as different
+   because advisors often give different variety lists, which would have pushed the
+   threshold to 0.99 (10% reuse).
 
 The farmer sees the expert's text unchanged (no LLM rewrite) with "answered earlier by a
 KCC expert for a similar question (case, date)". Each reuse is logged as a `reused`

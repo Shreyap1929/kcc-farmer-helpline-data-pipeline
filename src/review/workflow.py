@@ -20,7 +20,8 @@ from typing import Callable, Literal, TypedDict
 from langgraph.graph import END, START, StateGraph
 
 from src.assistant.composer import rewrite_problems, template_text
-from src.assistant.language import detect_language
+from src.assistant.language import reply_language
+from src.cleaning.language import detect_script
 from src.assistant.sessions import OPEN_STATUSES, SessionStore
 from src.assistant.translate import AssistantUnavailable, translate_text
 from src.triage.policy import answer_signals
@@ -49,6 +50,12 @@ class ReviewState(TypedDict, total=False):
 
 class ReviewError(ValueError):
     """The expert's submission cannot be applied (bad input or wrong case state)."""
+
+
+def _written_language(text: str, case_language: str) -> str:
+    """English if Latin script; otherwise Marathi or Hindi, ties going to the farmer's language.
+    Variety codes (JS 335, KDS 726) inside a Marathi answer must not make it 'English'."""
+    return "en" if detect_script(text) == "latin" else reply_language(text, case_language)
 
 
 def _validate(state: ReviewState) -> ReviewState:
@@ -87,7 +94,7 @@ def _annotate(state: ReviewState) -> ReviewState:
         "time_sensitive": signals.time_sensitive,
     }
     return {
-        "answer_language": detect_language(state["answer"]),
+        "answer_language": _written_language(state["answer"], state["case"]["language"]),
         "checks": checks,
         # Reuse for future auto-answers is only ever considered for safe, timeless advice.
         "reusable": not (signals.chemical or signals.time_sensitive),
@@ -135,7 +142,7 @@ def _make_refer_reply(translator: Translator):
         checks = {"localization": "template"}
         note = (state.get("note") or "").strip()
         if note:
-            if detect_language(note) != case["language"]:
+            if _written_language(note, case["language"]) != case["language"]:
                 note, checks["localization"] = _localized(note, case["language"], translator, case["original_text"])
             reply += f"\n{template_text('EXPERT_NOTE', case['language'])} {note}"
         return {"farmer_reply": reply, "checks": checks, "reusable": False}
