@@ -9,7 +9,7 @@ point to a live or official source, or hand the case to a human expert.
 |---|---|---|
 | 1 | Data cleaning pipeline ([spec](docs/kcc_data_cleaning_stage1.md)) | Done |
 | 2 | Triage core: content policy, classifiers, multilingual retrieval, routing gate, API + console ([design](docs/stage2_triage_core.md)) | Done |
-| 3 | Speech in/out, LLM reply writing, LangGraph expert queue, golden evaluation set | Next |
+| 3 | Farmer chat, speech adapters, safe reply composition, SQLite expert-case persistence | In progress; measured validation has blockers |
 
 Progress log: [STATUS.md](STATUS.md).
 
@@ -47,6 +47,39 @@ Results (generated, never hand-edited): [dataset views](reports/stage2/views_rep
 Safety rules enforced in code and tests: chemical/dose questions and answers are never
 answered automatically; weather, mandi prices and scheme status are never answered from
 history; every automatic answer shows its KCC call id and date.
+
+---
+
+## Stage 3 - Farmer chat and voice
+
+Stage 3 adds a farmer interface at `http://localhost:8000/chat`; the operator console
+remains at `/`. It supports English, Marathi and Hindi typed chat, browser-recorded
+voice notes, Groq Whisper transcription, grounded historical-answer rewriting, fixed
+non-answer replies and text-only fallbacks. Expert cases are stored in local SQLite for
+a later review workflow; there is no expert dashboard in this stage.
+
+The app needs the Stage 2 `data/views/` and `data/artifacts/` runtime outputs. With the
+project virtual environment active, install the requirements and build those artifacts
+once when absent:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m src.triage.build
+```
+
+Configure `GROQ_API_KEY` privately in a local `.env` (copy `.env.example` as a template),
+then run:
+
+```powershell
+uvicorn src.api.app:app --port 8000
+```
+
+Open `/chat` for farmer chat or `/` for the operator console. Without a Groq key, typed
+chat uses the existing gate reply and voice reports unavailable. Generated audio and
+SQLite runtime data are local and ignored by Git. Run the voice evaluation harness with
+`python -m src.assistant.voice_eval`; synthetic outputs must not be interpreted as
+real-speech quality measurements. Current implementation and validation status are in
+[docs/stage3_progress.md](docs/stage3_progress.md) and [STATUS.md](STATUS.md).
 
 ---
 
