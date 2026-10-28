@@ -95,6 +95,17 @@ def build_router() -> APIRouter:
         except CaseConflict as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
 
+    @router.post("/cases/{case_id}/retire")
+    def retire(case_id: str, req: ClaimRequest, request: Request):
+        """Stop reusing this answer for new farmers (it stays sent to the original farmer)."""
+        try:
+            result = request.app.state.sessions.retire_answer(case_id, req.expert.strip())
+        except CaseConflict as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        if getattr(request.app.state, "reviewed", None) is not None:
+            request.app.state.reviewed.remove(case_id)
+        return result
+
     @router.post("/cases/{case_id}/resolve")
     def resolve(case_id: str, req: ResolveRequest, request: Request):
         try:

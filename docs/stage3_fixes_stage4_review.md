@@ -106,6 +106,32 @@ API (all under `/api/expert`): `GET /cases?status=&language=`, `GET /cases/{id}`
 draft, similar past calls, conversation and events), `POST /cases/{id}/claim`,
 `/release`, `/resolve` (`approve_draft` | `answer` | `refer`), `GET /stats`.
 
+## 3b. Reusing expert answers (feedback loop)
+
+`src/review/reviewed_answers.py`. Because the historical KB cannot answer Marathi/Hindi
+questions (parity 0/80), the expert desk is their main path, and the same questions keep
+arriving. Expert cases keep the farmer's own words, so a new question can be matched
+against them like for like (Marathi to Marathi), which the English KB never allowed.
+
+A reviewed answer is served instead of opening a new case only if **all** hold:
+
+1. The expert's answer was tagged `reusable` by the Stage 2 answer policy (no chemical,
+   no dose, nothing time-sensitive). Chemical answers are never indexed.
+2. The gate sent the new question to an expert only for `LOW_CONFIDENCE` or
+   `CROP_MISMATCH`, never for a dose, a high-risk topic or a chemical draft, and the
+   question has no dose, price, weather or scheme words.
+3. Same language and exactly the same crops mentioned as the reviewed question.
+4. Same-language embedding similarity >= `review.reuse_min_similarity` (REUSE_THRESHOLD),
+   calibrated so that no pair of different questions in the calibration set matches
+   (`python -m src.review.calibrate_reuse`, `reports/stage4/reviewed_reuse_report.md`).
+   REUSE_RESULT
+
+The farmer sees the expert's text unchanged (no LLM rewrite) with "answered earlier by a
+KCC expert for a similar question (case, date)". Each reuse is logged as a `reused`
+event on the original case, counted on the expert desk, and shown on the case, so an
+expert can see how far their answer travelled and correct it if needed. New reusable
+answers are indexed the moment the expert resolves the case.
+
 ## 4. Screenshots
 
 `reports/stage4/screenshots/`: chat opened from disk (the original bug, now explained),
@@ -118,6 +144,7 @@ against the live server; no console errors, no horizontal overflow at 390 px.
 1. Real voice notes (at least 20, both speakers, some with background noise) through
    `python -m src.assistant.voice_eval`.
 2. Native review of the Marathi/Hindi templates (`needs_native_review: true`).
-3. Feed `reusable` expert answers back as a reviewed knowledge base the gate can serve,
-   with its own calibration, never for chemical or time-sensitive answers.
+3. Reuse of expert answers is built (section 3b) but calibrated on machine-written
+   paraphrases; re-check the threshold on real repeat questions once the desk has
+   a few hundred answered cases. Add a way for experts to retire a reused answer.
 4. Expert accounts instead of a shared token; notifications instead of polling; live calls.

@@ -99,3 +99,15 @@ def test_chat_reuses_an_answer_resolved_through_the_api(tmp_path, monkeypatch):
         assert api.get("/api/expert/stats").json()["reused_answers"] == 1
         events = [e["kind"] for e in api.get(f"/api/expert/cases/{case_id}").json()["events"]]
         assert "reused" in events
+
+
+def test_retired_answer_is_no_longer_reused(store):
+    case = answered_case(store)
+    reviewed = ReviewedAnswers(store, fake_embed, threshold=0.95)
+    assert reviewed.match(YELLOW_AGAIN, "mr", LOW_CONF) is not None
+    store.retire_answer(case["case_id"], "Dr Patil")
+    reviewed.remove(case["case_id"])
+    assert reviewed.match(YELLOW_AGAIN, "mr", LOW_CONF) is None
+    assert len(ReviewedAnswers(store, fake_embed, threshold=0.95)) == 0  # survives a restart
+    with pytest.raises(Exception, match="only a reusable"):
+        store.retire_answer(case["case_id"], "Dr Patil")

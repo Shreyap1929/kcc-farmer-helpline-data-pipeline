@@ -372,7 +372,9 @@
           out.push(el("div", { class: "section" }, el("h3", { text: c.status === "answered" ? "Sent to the farmer" : "Referral sent to the farmer" }),
             el("div", { class: "result" }, el("p", { lang: c.language, text: c.farmer_reply || "" }),
               el("div", { class: "checks" }, ...checkChips(c))),
-            el("p", { class: "draft-note", text: `By ${c.resolved_by} · ${stamp(c.resolved_at)}${c.delivered_at ? " · seen by farmer" : " · not yet seen by farmer"}` })));
+            el("p", { class: "draft-note", text: `By ${c.resolved_by} · ${stamp(c.resolved_at)}${c.delivered_at ? " · seen by farmer" : " · not yet seen by farmer"}` }),
+            c.reusable && expert() ? el("div", { class: "actions" }, el("button", { type: "button", class: "btn quiet",
+              text: "Stop reusing this answer", onclick: () => act(c, "retire") })) : null));
           return out;
         }
 
@@ -437,7 +439,7 @@
         buttons.forEach((b) => { b.disabled = true; });
         try {
           const path = `/api/expert/cases/${encodeURIComponent(c.case_id)}`;
-          if (action === "claim" || action === "release") {
+          if (action === "claim" || action === "release" || action === "retire") {
             await api(`${path}/${action}`, { method: "POST", body: JSON.stringify({ expert: expert() }) });
           } else {
             await api(`${path}/resolve`, { method: "POST", body: JSON.stringify({ expert: expert(), action, ...extra }) });

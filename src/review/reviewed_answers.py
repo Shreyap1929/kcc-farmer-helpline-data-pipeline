@@ -67,6 +67,12 @@ class ReviewedAnswers:
             self._cases = [*self._cases, case]
             self._vectors = vector if not self._vectors.size else np.vstack([self._vectors, vector])
 
+    def remove(self, case_id: str) -> None:
+        with self._lock:
+            keep = [i for i, c in enumerate(self._cases) if c["case_id"] != case_id]
+            self._cases = [self._cases[i] for i in keep]
+            self._vectors = self._vectors[keep] if self._vectors.size else self._vectors
+
     def match(self, text: str, language: str, decision: dict) -> dict | None:
         """The reviewed case to serve for this question, or None."""
         if decision.get("route") != "EXPERT_REVIEW" or not self._cases:

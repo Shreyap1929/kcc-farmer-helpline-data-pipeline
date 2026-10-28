@@ -242,6 +242,16 @@ class SessionStore:
             self._event(db, case_id, status, expert, {"resolution": resolution, **checks})
         return self.get_expert_case(case_id)
 
+    def retire_answer(self, case_id: str, expert: str) -> dict:
+        """Stop an answered case from being reused for new questions."""
+        with self._connect() as db:
+            done = db.execute("UPDATE expert_cases SET reusable = 0 WHERE case_id = ? AND status = 'answered' "
+                              "AND reusable = 1", (case_id,)).rowcount
+            if not done:
+                raise CaseConflict("only a reusable answered case can be retired")
+            self._event(db, case_id, "retired", expert)
+        return self.get_expert_case(case_id)
+
     def record_reuse(self, case_id: str, session_id: str, similarity: float) -> None:
         with self._connect() as db:
             self._event(db, case_id, "reused", None, {"session_id": session_id, "similarity": round(similarity, 4)})
