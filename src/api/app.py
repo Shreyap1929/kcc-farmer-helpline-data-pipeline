@@ -19,12 +19,14 @@ from pydantic import BaseModel, Field
 
 from src.assistant.clarification import apply_followup, remember_if_clarifying
 from src.assistant.composer import compose_reply
-from src.assistant.language import detect_language
+from src.assistant.language import reply_language
 from src.assistant.sessions import SessionStore
 from src.assistant.stt import transcribe_audio, translate_audio
 from src.assistant.translate import AssistantUnavailable, translate_to_english
 from src.assistant.tts import synthesize
 
+from src.api.review import build_router as build_review_router
+from src.review.workflow import build_review_graph
 from src.triage.config import CONFIG_DIR
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -59,7 +61,8 @@ def _examples(engine) -> list[dict]:
     ]
 
 
-def create_app(engine=None, *, session_store=None, transcriber=None, audio_translator=None, tts=None) -> FastAPI:
+def create_app(engine=None, *, session_store=None, transcriber=None, audio_translator=None, tts=None,
+               review_translator=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         if engine is None:
@@ -73,11 +76,13 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         app.state.audio_translator = audio_translator or translate_audio
         app.state.tts = tts or synthesize
         app.state.audio = {}
+        app.state.review_graph = build_review_graph(app.state.sessions, review_translator)
         app.state.examples = _examples(app.state.engine)
         yield
 
-    app = FastAPI(title="KCC Farmer Helpline - Triage API", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="KCC Farmer Helpline - Triage API", version="0.3.0", lifespan=lifespan)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.include_router(build_review_router())
 
     @app.get("/", include_in_schema=False)
     def console():
@@ -86,6 +91,10 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
     @app.get("/chat", include_in_schema=False)
     def farmer_chat():
         return FileResponse(STATIC_DIR / "chat.html")
+
+    @app.get("/expert", include_in_schema=False)
+    def expert_dashboard():
+        return FileResponse(STATIC_DIR / "expert.html")
 
     @app.get("/api/health")
     def health(request: Request):
@@ -103,27 +112,31 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         return request.app.state.engine.triage(req.text, district=req.district, crop=req.crop, month=req.month)
 
     def _chat(req: ChatMessage, request: Request, *, language_override: str | None = None,
-              english_override: str | None = None):
+              english_fallback=None):
         store = request.app.state.sessions
         session = store.get_session(req.session_id)
         if session is None:
             raise HTTPException(status_code=404, detail="session not found")
         started = __import__("time").perf_counter()
-        language = language_override or session.get("language") or detect_language(req.text)
+        language = language_override or reply_language(req.text, session.get("language"))
         clarified = apply_followup(store, req.session_id, req.text)
         profile_crop = clarified.crop or session.get("crop")
-        if english_override is not None:
-            english = english_override
-        else:
-            try:
-                english = translate_to_english(clarified.text, language)
-            except AssistantUnavailable:
-                english = clarified.text
         decision = request.app.state.engine.triage(
             clarified.text, district=session.get("district"), crop=profile_crop, month=session.get("month")
         )
         case_id = None
         if decision.get("route") == "EXPERT_REVIEW":
+            # The English version is only for the expert, so only expert cases pay for it.
+            try:
+                english = translate_to_english(clarified.text, language)
+            except (AssistantUnavailable, ValueError):
+                english = None
+            if english is None and english_fallback is not None:
+                try:
+                    english = english_fallback()
+                except Exception:
+                    english = None
+            english = english or clarified.text
             case_id = store.save_expert_case(
                 session_id=req.session_id, original_text=req.text, english_text=english, language=language,
                 reasons=decision.get("reasons") or [], draft=decision.get("draft_for_expert"),
@@ -171,15 +184,23 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         except Exception as exc:
             raise HTTPException(status_code=503, detail="voice unavailable") from exc
         req = ChatMessage(session_id=session_id, text=transcript["text"])
-        language = transcript.get("language")
-        language = {"marathi": "mr", "hindi": "hi", "english": "en"}.get(language, language)
-        try:
-            english = request.app.state.audio_translator(contents, audio.filename or "recording.webm",
-                                                         audio.content_type or "audio/webm")
-        except Exception:
-            # Transcription still gives a usable text path if Whisper translation is down.
-            english = transcript["text"]
-        result = _chat(req, request, language_override=language, english_override=english)
+        session = request.app.state.sessions.get_session(session_id)
+        if session is None:
+            raise HTTPException(status_code=404, detail="session not found")
+        # Whisper names the language ("Marathi", "marathi" or "mr" depending on version) and
+        # often hears Marathi as Hindi, so the transcript's own words decide and Whisper
+        # only breaks a tie.
+        heard = str(transcript.get("language") or "").strip().lower()
+        heard = {"marathi": "mr", "hindi": "hi", "english": "en"}.get(heard, heard)
+        language = reply_language(req.text, heard if heard in {"en", "mr", "hi"} else session.get("language"))
+        # The expert's English copy comes from translating the transcript as text. Whisper's
+        # own audio translation turned "whitefly on cotton" into "a Pannari fish on my plate"
+        # in a live test, so it is only the fallback, and only paid for on expert cases.
+        def whisper_translation():
+            return request.app.state.audio_translator(contents, audio.filename or "recording.webm",
+                                                      audio.content_type or "audio/webm")
+
+        result = _chat(req, request, language_override=language, english_fallback=whisper_translation)
         result["transcript"] = req.text
         try:
             audio_reply = await request.app.state.tts(result["reply"], result["language"])
@@ -190,6 +211,24 @@ def create_app(engine=None, *, session_store=None, transcriber=None, audio_trans
         else:
             result["voice_unavailable"] = True
         return result
+
+    @app.get("/api/chat/session/{session_id}/updates")
+    async def chat_updates(session_id: str, request: Request):
+        """Expert answers that arrived since the farmer last asked (each is delivered once)."""
+        store = request.app.state.sessions
+        if store.get_session(session_id) is None:
+            raise HTTPException(status_code=404, detail="session not found")
+        updates = []
+        for item in store.take_updates(session_id):
+            update = {"case_id": item["case_id"], "status": item["status"], "reply": item["farmer_reply"]}
+            try:
+                audio_reply = await request.app.state.tts(item["farmer_reply"], item["language"])
+            except Exception:
+                audio_reply = None
+            if audio_reply:
+                update["audio_url"] = _cache_audio(request, audio_reply)
+            updates.append(update)
+        return {"updates": updates}
 
     @app.get("/api/chat/audio/{audio_id}")
     def chat_audio(audio_id: str, request: Request):

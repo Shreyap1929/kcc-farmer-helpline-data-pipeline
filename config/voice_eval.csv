@@ -3,3 +3,15 @@ synthetic/edge-mr.mp3,synthetic-edge,mr,false,माझ्या कापसा
 synthetic/edge-hi.mp3,synthetic-edge,hi,false,मेरी कपास की फसल की पत्तियाँ पीली पड़ रही हैं,
 synthetic/gtts-mr.mp3,synthetic-gtts,mr,false,माझ्या कापसाच्या पिकाची पाने पिवळी पडत आहेत,
 synthetic/gtts-hi.mp3,synthetic-gtts,hi,false,मेरी कपास की फसल की पत्तियाँ पीली पड़ रही हैं,
+synthetic/edge-mr-price.mp3,synthetic-edge,mr,false,कांद्याचा आजचा बाजारभाव काय आहे,LIVE_DATA_POINTER
+synthetic/gtts-mr-price.mp3,synthetic-gtts,mr,false,कांद्याचा आजचा बाजारभाव काय आहे,LIVE_DATA_POINTER
+synthetic/edge-mr-whitefly.mp3,synthetic-edge,mr,false,कापसावर पांढरी माशी आली आहे काय फवारणी करावी,EXPERT_REVIEW
+synthetic/gtts-mr-whitefly.mp3,synthetic-gtts,mr,false,कापसावर पांढरी माशी आली आहे काय फवारणी करावी,EXPERT_REVIEW
+synthetic/edge-mr-pmkisan.mp3,synthetic-edge,mr,false,पीएम किसान योजनेचा पुढचा हप्ता कधी येणार,SCHEME_POINTER
+synthetic/gtts-mr-pmkisan.mp3,synthetic-gtts,mr,false,पीएम किसान योजनेचा पुढचा हप्ता कधी येणार,SCHEME_POINTER
+synthetic/edge-hi-weather.mp3,synthetic-edge,hi,false,अगले हफ्ते मौसम कैसा रहेगा,LIVE_DATA_POINTER
+synthetic/gtts-hi-weather.mp3,synthetic-gtts,hi,false,अगले हफ्ते मौसम कैसा रहेगा,LIVE_DATA_POINTER
+synthetic/edge-hi-armyworm.mp3,synthetic-edge,hi,false,मक्के में फॉल आर्मीवर्म का नियंत्रण कैसे करें,EXPERT_REVIEW
+synthetic/gtts-hi-armyworm.mp3,synthetic-gtts,hi,false,मक्के में फॉल आर्मीवर्म का नियंत्रण कैसे करें,EXPERT_REVIEW
+synthetic/edge-hi-disease.mp3,synthetic-edge,hi,false,मेरी फसल में रोग लग गया है,CLARIFY
+synthetic/gtts-hi-disease.mp3,synthetic-gtts,hi,false,मेरी फसल में रोग लग गया है,CLARIFY

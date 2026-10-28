@@ -134,7 +134,7 @@ def test_voice_upload_returns_transcript_text_and_retrievable_reply_audio(client
     assert result.status_code == 200
     body = result.json()
     assert body["transcript"] == "question" and body["reply"]
-    assert client.audio_translate_calls == [(b"fake audio", "note.webm", "audio/webm")]
+    assert client.audio_translate_calls == []  # Whisper translation is only an expert-case fallback
     audio = client.get(body["audio_url"])
     assert audio.status_code == 200 and audio.content == b"reply-audio"
     assert audio.headers["content-type"] == "audio/mpeg"
@@ -154,3 +154,19 @@ def test_voice_unavailable_is_clear_and_not_crash(client):
 
 def test_expired_or_unknown_audio_is_not_available(client):
     assert client.get("/api/chat/audio/no-such-id").status_code == 404
+
+
+def test_voice_expert_case_uses_whisper_translation_only_when_text_translation_fails(client, monkeypatch):
+    import src.api.app as app_module
+
+    def down(text, language):
+        raise app_module.AssistantUnavailable("down")
+
+    monkeypatch.setattr(app_module, "translate_to_english", down)
+    client.app.state.transcriber = lambda *args: {"text": "expert question", "language": "Marathi"}
+    sid = client.post("/api/chat/session", json={}).json()["session_id"]
+    body = client.post("/api/chat/voice", data={"session_id": sid},
+                       files={"audio": ("note.webm", b"fake audio", "audio/webm")}).json()
+    assert body["case_id"]
+    assert client.store.get_expert_case(body["case_id"])["english_text"] == "translated voice question"
+    assert len(client.audio_translate_calls) == 1

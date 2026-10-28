@@ -165,6 +165,8 @@
       .composer-hint { margin-top: 5px; font-size: 10px; }
     }
     @media (max-width: 365px) { .privacy-note { display: none; }.sample-questions button { max-width: 100%; }.composer-hint span:last-child { display: none; } }
+    .message.expert .bubble { border-left: 3px solid var(--saffron); }
+    .message.expert .speaker { color: var(--saffron); font-weight: 650; }
   </style>
 </head>
 <body>
@@ -191,9 +193,9 @@
             <h3 id="welcomeTitle">नमस्कार! शेतीबद्दल काय मदत हवी?</h3>
             <p id="welcomeBody">तुमचा प्रश्न मराठीत, हिंदीत किंवा इंग्रजीत लिहा किंवा आवाजात सांगा. उत्तर उपलब्ध KCC नोंदींवर आधारित असेल.</p>
             <div class="sample-questions" id="sampleQuestions">
-              <button type="button" data-message="कापसाच्या पिकाबद्दल माहिती हवी आहे">कापूस</button>
+              <button type="button" data-message="कांद्याचे सुधारित वाण कोणते आहेत">कांद्याचे वाण</button>
               <button type="button" data-message="माझ्या पिकाची पाने पिवळी पडत आहेत">पिकाची लक्षणे</button>
-              <button type="button" data-message="गहू पिकाबद्दल माहिती हवी आहे">गहू</button>
+              <button type="button" data-message="कांद्याचा आजचा बाजारभाव काय आहे">आजचा भाव</button>
             </div>
           </div>
           <div class="inline-alert" id="alert" role="alert" hidden></div>
@@ -231,9 +233,9 @@
       const recordingStatus = $("#recordingStatus");
       const welcome = $("#welcome");
       const languageCopy = {
-        mr: { heading: "तुमचा प्रश्न सांगा", subheading: "शेतीविषयक मदतीसाठी KCC शी बोला", privacy: "रेकॉर्डिंग साठवली जात नाही", title: "नमस्कार! शेतीबद्दल काय मदत हवी?", body: "तुमचा प्रश्न मराठीत, हिंदीत किंवा इंग्रजीत लिहा किंवा आवाजात सांगा. उत्तर उपलब्ध KCC नोंदींवर आधारित असेल.", placeholder: "तुमचा प्रश्न इथे लिहा…", write: "आवाजाने सांगण्यासाठी माइक निवडा", micUnavailable: "या ब्राउझरमध्ये आवाज रेकॉर्डिंग उपलब्ध नाही. कृपया प्रश्न लिहा.", farmer: "तुम्ही", assistant: "KCC मदत", connecting: "जोडत आहे", ready: "जोडले", offline: "सेवा उपलब्ध नाही", sending: "पाठवत आहे…", recording: "रेकॉर्डिंग सुरू", stop: "रेकॉर्डिंग थांबवा", record: "आवाज संदेश रेकॉर्ड करा", fallback: "आवाजातील उत्तर उपलब्ध नाही. कृपया वरील मजकूर वाचा.", newSession: "भाषा बदलली. नवीन संवाद सुरू झाला.", error: "सध्या सेवा उपलब्ध नाही. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.", micError: "माइक सुरू करता आला नाही. परवानगी तपासा किंवा प्रश्न लिहा.", empty: "कृपया आधी तुमचा प्रश्न लिहा." },
-        hi: { heading: "अपना सवाल बताइए", subheading: "खेती से जुड़ी मदद के लिए KCC से बात करें", privacy: "रिकॉर्डिंग सहेजी नहीं जाती", title: "नमस्ते! खेती में किस मदद की ज़रूरत है?", body: "अपना सवाल मराठी, हिंदी या अंग्रेज़ी में लिखें या बोलें। जवाब उपलब्ध KCC रिकॉर्ड पर आधारित होगा।", placeholder: "अपना सवाल यहाँ लिखें…", write: "बोलने के लिए माइक चुनें", micUnavailable: "इस ब्राउज़र में आवाज़ रिकॉर्डिंग उपलब्ध नहीं है। कृपया सवाल लिखें।", farmer: "आप", assistant: "KCC सहायता", connecting: "जुड़ रहा है", ready: "जुड़ा हुआ", offline: "सेवा उपलब्ध नहीं", sending: "भेज रहे हैं…", recording: "रिकॉर्डिंग चालू", stop: "रिकॉर्डिंग रोकें", record: "आवाज़ संदेश रिकॉर्ड करें", fallback: "आवाज़ में जवाब उपलब्ध नहीं है। कृपया ऊपर दिया जवाब पढ़ें।", newSession: "भाषा बदली। नई बातचीत शुरू हुई।", error: "सेवा अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद फिर कोशिश करें।", micError: "माइक शुरू नहीं हो सका। अनुमति जाँचें या सवाल लिखें।", empty: "कृपया पहले अपना सवाल लिखें." },
-        en: { heading: "Ask your question", subheading: "Talk to KCC for farming support", privacy: "Recordings are not saved", title: "Hello! What would you like help with?", body: "Type or speak in Marathi, Hindi, or English. Answers are based on available KCC records.", placeholder: "Write your question here…", write: "Choose the microphone to speak", micUnavailable: "Voice recording is unavailable in this browser. Please type your question.", farmer: "You", assistant: "KCC support", connecting: "Connecting", ready: "Connected", offline: "Service unavailable", sending: "Sending…", recording: "Recording", stop: "Stop recording", record: "Record a voice message", fallback: "Voice playback is unavailable. Please read the reply above.", newSession: "Language changed. A new conversation has started.", error: "The service is unavailable right now. Please try again shortly.", micError: "Could not start the microphone. Check permission or type your question.", empty: "Please write your question first." }
+        mr: { heading: "तुमचा प्रश्न सांगा", subheading: "शेतीविषयक मदतीसाठी KCC शी बोला", privacy: "रेकॉर्डिंग साठवली जात नाही", title: "नमस्कार! शेतीबद्दल काय मदत हवी?", body: "तुमचा प्रश्न मराठीत, हिंदीत किंवा इंग्रजीत लिहा किंवा आवाजात सांगा. उत्तर उपलब्ध KCC नोंदींवर आधारित असेल.", placeholder: "तुमचा प्रश्न इथे लिहा…", write: "आवाजाने सांगण्यासाठी माइक निवडा", micUnavailable: "या ब्राउझरमध्ये आवाज रेकॉर्डिंग उपलब्ध नाही. कृपया प्रश्न लिहा.", farmer: "तुम्ही", assistant: "KCC मदत", connecting: "जोडत आहे", ready: "जोडले", offline: "सेवा उपलब्ध नाही", sending: "पाठवत आहे…", recording: "रेकॉर्डिंग सुरू", stop: "रेकॉर्डिंग थांबवा", record: "आवाज संदेश रेकॉर्ड करा", fallback: "आवाजातील उत्तर उपलब्ध नाही. कृपया वरील मजकूर वाचा.", newSession: "भाषा बदलली. नवीन संवाद सुरू झाला.", error: "सध्या सेवा उपलब्ध नाही. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.", micError: "माइक सुरू करता आला नाही. परवानगी तपासा किंवा प्रश्न लिहा.", empty: "कृपया आधी तुमचा प्रश्न लिहा.", expert: "KCC तज्ज्ञ", noServer: "हे पान KCC सर्व्हरशिवाय चालत नाही. सर्व्हर सुरू करून http://localhost:8000/chat उघडा.", retrying: "सेवेशी जोडता आले नाही. पुन्हा प्रयत्न करत आहे…" },
+        hi: { heading: "अपना सवाल बताइए", subheading: "खेती से जुड़ी मदद के लिए KCC से बात करें", privacy: "रिकॉर्डिंग सहेजी नहीं जाती", title: "नमस्ते! खेती में किस मदद की ज़रूरत है?", body: "अपना सवाल मराठी, हिंदी या अंग्रेज़ी में लिखें या बोलें। जवाब उपलब्ध KCC रिकॉर्ड पर आधारित होगा।", placeholder: "अपना सवाल यहाँ लिखें…", write: "बोलने के लिए माइक चुनें", micUnavailable: "इस ब्राउज़र में आवाज़ रिकॉर्डिंग उपलब्ध नहीं है। कृपया सवाल लिखें।", farmer: "आप", assistant: "KCC सहायता", connecting: "जुड़ रहा है", ready: "जुड़ा हुआ", offline: "सेवा उपलब्ध नहीं", sending: "भेज रहे हैं…", recording: "रिकॉर्डिंग चालू", stop: "रिकॉर्डिंग रोकें", record: "आवाज़ संदेश रिकॉर्ड करें", fallback: "आवाज़ में जवाब उपलब्ध नहीं है। कृपया ऊपर दिया जवाब पढ़ें।", newSession: "भाषा बदली। नई बातचीत शुरू हुई।", error: "सेवा अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद फिर कोशिश करें।", micError: "माइक शुरू नहीं हो सका। अनुमति जाँचें या सवाल लिखें।", empty: "कृपया पहले अपना सवाल लिखें.", expert: "KCC विशेषज्ञ", noServer: "यह पेज KCC सर्वर के बिना नहीं चलता. सर्वर शुरू करके http://localhost:8000/chat खोलें.", retrying: "सेवा से जुड़ नहीं पाए. फिर कोशिश कर रहे हैं…" },
+        en: { heading: "Ask your question", subheading: "Talk to KCC for farming support", privacy: "Recordings are not saved", title: "Hello! What would you like help with?", body: "Type or speak in Marathi, Hindi, or English. Answers are based on available KCC records.", placeholder: "Write your question here…", write: "Choose the microphone to speak", micUnavailable: "Voice recording is unavailable in this browser. Please type your question.", farmer: "You", assistant: "KCC support", connecting: "Connecting", ready: "Connected", offline: "Service unavailable", sending: "Sending…", recording: "Recording", stop: "Stop recording", record: "Record a voice message", fallback: "Voice playback is unavailable. Please read the reply above.", newSession: "Language changed. A new conversation has started.", error: "The service is unavailable right now. Please try again shortly.", micError: "Could not start the microphone. Check permission or type your question.", empty: "Please write your question first.", expert: "KCC expert", noServer: "This page needs the KCC server. Start it with: uvicorn src.api.app:app --port 8000, then open http://localhost:8000/chat.", retrying: "Could not reach the service. Trying again…" }
       };
       let sessionId = null;
       let busy = false;
@@ -245,6 +247,12 @@
       let timerTick = null;
       let activeAudio = null;
       let sessionGeneration = 0;
+      let retryTimer = null;
+      let retryDelay = 3000;
+      let pollTimer = null;
+      const openCases = new Set();
+      // Opened from disk (file://) the page has no API behind it; say so instead of a vague error.
+      const noServer = window.location.protocol === "file:";
       const copy = () => languageCopy[language.value] || languageCopy.mr;
 
       function setStatus(state) {
@@ -271,10 +279,10 @@
       function addMessage(who, text, options = {}) {
         welcome.hidden = true;
         const wrap = document.createElement("article");
-        wrap.className = `message ${who}`;
+        wrap.className = `message ${who}${options.expert ? " expert" : ""}`;
         const label = document.createElement("div");
         label.className = "speaker";
-        label.textContent = who === "farmer" ? copy().farmer : copy().assistant;
+        label.textContent = who === "farmer" ? copy().farmer : options.expert ? copy().expert : copy().assistant;
         const bubble = document.createElement("div");
         bubble.className = "bubble";
         const p = document.createElement("p");
@@ -320,6 +328,11 @@
       }
       async function createSession(showNotice = false) {
         const generation = ++sessionGeneration;
+        if (retryTimer) window.clearTimeout(retryTimer);
+        retryTimer = null;
+        openCases.clear();
+        stopPolling();
+        if (noServer) { setStatus("error"); setAlert(copy().noServer); return; }
         setStatus("loading");
         try {
           const response = await fetch("/api/chat/session", {
@@ -331,7 +344,9 @@
           if (generation !== sessionGeneration) return;
           if (!result.session_id) throw new Error("Missing session id");
           sessionId = result.session_id;
+          retryDelay = 3000;
           setStatus("ready");
+          if (alertBox.textContent === copy().retrying || alertBox.textContent === copy().error) setAlert("");
           if (showNotice) {
             thread.replaceChildren();
             welcome.hidden = false;
@@ -342,8 +357,34 @@
           if (generation !== sessionGeneration) return;
           sessionId = null;
           setStatus("error");
-          if (showNotice) setAlert(copy().error);
+          setAlert(copy().retrying);
+          // The server may still be loading its models (20-40 s): keep trying, backing off to 30 s.
+          retryTimer = window.setTimeout(() => createSession(showNotice), retryDelay);
+          retryDelay = Math.min(retryDelay * 2, 30000);
         }
+      }
+      function trackCase(caseId) {
+        if (!caseId) return;
+        openCases.add(caseId);
+        if (!pollTimer) pollTimer = window.setInterval(pollUpdates, 8000);
+      }
+      function stopPolling() {
+        if (pollTimer) window.clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      async function pollUpdates() {
+        if (!sessionId || !openCases.size || document.hidden) return;
+        const generation = sessionGeneration;
+        try {
+          const response = await fetch(`/api/chat/session/${encodeURIComponent(sessionId)}/updates`);
+          if (!response.ok || generation !== sessionGeneration) return;
+          const result = await response.json();
+          for (const update of result.updates || []) {
+            openCases.delete(update.case_id);
+            addMessage("assistant", update.reply, { expert: true, audioUrl: update.audio_url });
+          }
+          if (!openCases.size) stopPolling();
+        } catch (_) { /* a missed poll is retried on the next tick */ }
       }
       function updateLanguage() {
         const t = copy();
@@ -360,10 +401,13 @@
         recordButton.title = t.record;
         if (status.dataset.state !== "ready") setStatus(status.dataset.state === "error" ? "error" : "loading");
         if (!recorder || recorder.state !== "recording") recordingStatus.textContent = "";
-        [...thread.querySelectorAll(".speaker")].forEach((node) => { node.textContent = node.parentElement.classList.contains("farmer") ? t.farmer : t.assistant; });
+        [...thread.querySelectorAll(".speaker")].forEach((node) => {
+          const cls = node.parentElement.classList;
+          node.textContent = cls.contains("farmer") ? t.farmer : cls.contains("expert") ? t.expert : t.assistant;
+        });
         [...$("#sampleQuestions").querySelectorAll("button")].forEach((button) => {
           const phrases = {
-            mr: ["कापूस", "पिकाची लक्षणे", "गहू"], hi: ["कपास", "फसल के लक्षण", "गेहूँ"], en: ["Cotton", "Crop symptoms", "Wheat"]
+            mr: ["कांद्याचे वाण", "पिकाची लक्षणे", "आजचा भाव"], hi: ["प्याज की किस्में", "फसल के लक्षण", "आज का भाव"], en: ["Onion varieties", "Crop symptoms", "Today's price"]
           }[language.value];
           button.textContent = phrases[[...button.parentElement.children].indexOf(button)];
         });
@@ -452,6 +496,7 @@
           loading.remove();
           if (result.transcript) addMessage("farmer", result.transcript);
           addMessage("assistant", result.reply || copy().error, { audioUrl: result.audio_url, voiceUnavailable: !result.audio_url });
+          trackCase(result.case_id);
           setStatus("ready");
         } catch (_) {
           loading.remove();
@@ -466,7 +511,7 @@
         if (!text.trim()) { input.focus(); setAlert(copy().empty); return; }
         if (busy) return;
         if (!sessionId) await createSession();
-        if (!sessionId) { setAlert(copy().error); return; }
+        if (!sessionId) { setAlert(noServer ? copy().noServer : copy().error); return; }
         setAlert("");
         addMessage("farmer", text.trim());
         setBusy(true);
@@ -480,6 +525,7 @@
           const result = await response.json();
           loading.remove();
           addMessage("assistant", result.reply || copy().error);
+          trackCase(result.case_id);
           setStatus("ready");
         } catch (_) {
           loading.remove();
@@ -521,13 +567,14 @@
         const button = event.target.closest("button[data-message]");
         if (!button || busy) return;
         const localized = {
-          mr: ["कापसाच्या पिकाबद्दल माहिती हवी आहे", "माझ्या पिकाची पाने पिवळी पडत आहेत", "गहू पिकाबद्दल माहिती हवी आहे"],
-          hi: ["मुझे कपास की फसल के बारे में जानकारी चाहिए", "मेरी फसल की पत्तियाँ पीली पड़ रही हैं", "मुझे गेहूँ की फसल के बारे में जानकारी चाहिए"],
-          en: ["I need information about cotton farming", "The leaves on my crop are turning yellow", "I need information about wheat farming"]
+          mr: ["कांद्याचे सुधारित वाण कोणते आहेत", "माझ्या पिकाची पाने पिवळी पडत आहेत", "कांद्याचा आजचा बाजारभाव काय आहे"],
+          hi: ["प्याज की उन्नत किस्में कौन सी हैं", "मेरी फसल की पत्तियाँ पीली पड़ रही हैं", "प्याज का आज का भाव क्या है"],
+          en: ["Varieties of onion", "The leaves on my crop are turning yellow", "What is the onion price today?"]
         }[language.value];
         const index = [...button.parentElement.children].indexOf(button);
         sendText(localized[index]);
       });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) pollUpdates(); });
       window.addEventListener("pagehide", () => {
         if (recordTimer) window.clearTimeout(recordTimer);
         if (recorder && recorder.state === "recording") recorder.stop();

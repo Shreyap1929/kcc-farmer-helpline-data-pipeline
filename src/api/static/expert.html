@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f0e6">
+  <title>KCC Expert Desk</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #f3f0e6;
+      --sheet: #fffdf7;
+      --sheet-raised: #ffffff;
+      --ink: #20291f;
+      --muted: #5a6657;
+      --faint: #768071;
+      --line: #d9ddcf;
+      --leaf: #285b38;
+      --leaf-dark: #1c4329;
+      --leaf-soft: #e3eee2;
+      --saffron: #a85a10;
+      --saffron-soft: #f8ead5;
+      --sky: #2c5d86;
+      --sky-soft: #e2ecf4;
+      --danger: #a43b2c;
+      --danger-soft: #f7e7e1;
+      --focus: #bd6a19;
+      --shadow: 0 10px 34px rgba(58, 58, 37, .08), 0 2px 6px rgba(58, 58, 37, .05);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #151a15;
+        --sheet: #1d241d;
+        --sheet-raised: #242d24;
+        --ink: #e9eee5;
+        --muted: #b7c1b2;
+        --faint: #9aa694;
+        --line: #394438;
+        --leaf: #a5d5a9;
+        --leaf-dark: #153c24;
+        --leaf-soft: #293d2c;
+        --saffron: #f0b36b;
+        --saffron-soft: #443521;
+        --sky: #9cc5e8;
+        --sky-soft: #22323f;
+        --danger: #f2a293;
+        --danger-soft: #472923;
+        --focus: #f0b36b;
+        --shadow: 0 10px 34px rgba(0, 0, 0, .28), 0 2px 6px rgba(0, 0, 0, .2);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper);
+      font: 15px/1.5 "Nirmala UI", "Noto Sans Devanagari", "Mangal", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    :focus-visible { outline: 3px solid var(--focus) !important; outline-offset: 2px; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      padding: 12px clamp(16px, 3vw, 36px); border-bottom: 1px solid var(--line); background: var(--sheet);
+    }
+    .identity { display: flex; align-items: center; gap: 12px; }
+    .mark { width: 40px; height: 40px; display: grid; place-items: center; color: #fff; background: var(--leaf-dark); border-radius: 12px 12px 12px 5px; flex: none; }
+    .mark svg { width: 24px; height: 24px; }
+    .identity h1 { margin: 0; font-size: 17px; line-height: 1.2; letter-spacing: -.02em; }
+    .identity p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .who { display: flex; align-items: center; gap: 8px; }
+    .who label { color: var(--muted); font-size: 12px; font-weight: 650; }
+    .who input { width: 190px; min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet-raised); }
+
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; padding: 16px clamp(16px, 3vw, 36px) 0; }
+    .stat { padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--sheet); }
+    .stat b { display: block; font-size: 22px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: 12px; }
+
+    .desk { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 16px; padding: 16px clamp(16px, 3vw, 36px) 28px; align-items: start; }
+    .panel { background: var(--sheet); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); min-width: 0; }
+    .queue-head { display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 10px; border-bottom: 1px solid var(--line); }
+    .queue-head h2 { margin: 0; font-size: 15px; }
+    .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+    .tabs button { padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 650; cursor: pointer; }
+    .tabs button[aria-pressed="true"] { background: var(--leaf-dark); border-color: var(--leaf-dark); color: #fff; }
+    .filters { display: flex; gap: 8px; align-items: center; }
+    .filters select { min-height: 34px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--sheet-raised); font-size: 13px; }
+    .queue { list-style: none; margin: 0; padding: 6px; max-height: calc(100vh - 290px); min-height: 200px; overflow-y: auto; }
+    .queue li + li { margin-top: 4px; }
+    .case-row { width: 100%; display: block; text-align: left; padding: 10px 11px; border: 1px solid transparent; border-radius: 11px; background: transparent; cursor: pointer; }
+    .case-row:hover { background: color-mix(in srgb, var(--leaf-soft) 55%, transparent); }
+    .case-row[aria-current="true"] { background: var(--leaf-soft); border-color: color-mix(in srgb, var(--leaf) 30%, var(--line)); }
+    .row-top { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--faint); }
+    .row-top b { color: var(--muted); font-weight: 700; letter-spacing: .02em; }
+    .row-q { margin: 4px 0 3px; font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+    .row-en { margin: 0 0 6px; color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+    .chip { display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: .02em; background: var(--saffron-soft); color: var(--saffron); }
+    .chip.lang { background: var(--sky-soft); color: var(--sky); }
+    .chip.status-pending { background: var(--saffron-soft); color: var(--saffron); }
+    .chip.status-in_review { background: var(--sky-soft); color: var(--sky); }
+    .chip.status-answered { background: var(--leaf-soft); color: var(--leaf); }
+    .chip.status-referred { background: color-mix(in srgb, var(--line) 60%, transparent); color: var(--muted); }
+    .empty { padding: 34px 18px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    .detail { padding: 0; }
+    .detail-empty { padding: 70px 24px; text-align: center; color: var(--muted); }
+    .detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .detail-head h2 { margin: 0 0 4px; font-size: 16px; letter-spacing: .01em; }
+    .detail-head p { margin: 0; color: var(--muted); font-size: 12.5px; }
+    .section { padding: 15px 20px; border-bottom: 1px solid var(--line); }
+    .section:last-child { border-bottom: 0; }
+    .section h3 { margin: 0 0 8px; color: var(--muted); font-size: 11.5px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+    .question { margin: 0; font-size: 18px; line-height: 1.45; overflow-wrap: anywhere; }
+    .translation { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .reasons { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+    .reasons li { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; }
+    .reasons code { flex: none; font: 700 11px/1.6 ui-monospace, Consolas, monospace; padding: 0 6px; border-radius: 5px; background: var(--saffron-soft); color: var(--saffron); }
+    .turns { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+    .turns li { display: flex; gap: 8px; }
+    .turns span:first-child { flex: none; width: 128px; font: 600 11px/1.9 ui-monospace, Consolas, monospace; color: var(--faint); }
+    .draft { margin: 0; padding: 11px 13px; border: 1px dashed color-mix(in srgb, var(--saffron) 45%, var(--line)); border-radius: 11px; background: color-mix(in srgb, var(--saffron-soft) 45%, transparent); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .draft-note { margin: 7px 0 0; color: var(--faint); font-size: 12px; }
+    details.sources summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 650; }
+    .source { margin-top: 9px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; }
+    .source .meta { color: var(--faint); font-size: 11.5px; }
+    .source p { margin: 4px 0 0; overflow-wrap: anywhere; }
+    .compose label { display: block; margin-bottom: 6px; font-weight: 650; font-size: 13.5px; }
+    .compose textarea { width: 100%; min-height: 130px; resize: vertical; padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--sheet-raised); line-height: 1.5; }
+    .compose .hint { margin: 6px 0 12px; color: var(--faint); font-size: 12px; }
+    .note-input { width: 100%; min-height: 38px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--sheet-raised); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .btn { min-height: 40px; padding: 8px 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--sheet-raised); font-weight: 700; font-size: 13.5px; cursor: pointer; }
+    .btn:hover:not(:disabled) { border-color: var(--leaf); }
+    .btn.primary { background: var(--leaf-dark); border-color: var(--leaf-dark); color: #fff; }
+    .btn.primary:hover:not(:disabled) { background: #285b38; }
+    .btn.quiet { color: var(--muted); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .result { padding: 12px 14px; border-radius: 12px; background: var(--leaf-soft); border: 1px solid color-mix(in srgb, var(--leaf) 22%, var(--line)); }
+    .result p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .checks { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; }
+    .alert { margin: 0 0 12px; padding: 9px 12px; border-radius: 10px; font-size: 13px; background: var(--danger-soft); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line)); }
+    .lock { padding: 10px 13px; border-radius: 11px; background: var(--sky-soft); color: var(--sky); font-size: 13.5px; }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .desk { grid-template-columns: 1fr; }
+      .queue { max-height: 340px; }
+    }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      .stat b { font-size: 19px; }
+      .who { width: 100%; }
+      .who input { flex: 1; width: auto; }
+      .section, .detail-head { padding-left: 15px; padding-right: 15px; }
+      .question { font-size: 16.5px; }
+      .turns span:first-child { width: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="identity">
+      <div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M26.5 5.5C16.1 6.1 8.6 10.2 7 18.2c-.7 3.3 1.3 6.1 4.4 6.1 7.3 0 13.3-7.5 15.1-18.8Z" fill="currentColor"/><path d="M5.5 27c3.1-5 7.7-9 14-12.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <div><h1>KCC Expert Desk</h1><p>Questions the assistant would not answer on its own</p></div>
+    </div>
+    <div class="who">
+      <label for="expertName">Signed in as</label>
+      <input id="expertName" maxlength="80" placeholder="Your name" autocomplete="name">
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Queue summary">
+    <div class="stat"><b id="statPending">–</b><span>Waiting</span></div>
+    <div class="stat"><b id="statReview">–</b><span>In review</span></div>
+    <div class="stat"><b id="statAnswered">–</b><span>Answered</span></div>
+    <div class="stat"><b id="statReferred">–</b><span>Referred</span></div>
+    <div class="stat"><b id="statMedian">–</b><span>Median time to resolve</span></div>
+  </section>
+
+  <main class="desk">
+    <section class="panel" aria-labelledby="queueTitle">
+      <div class="queue-head">
+        <h2 id="queueTitle">Cases</h2>
+        <div class="tabs" role="group" aria-label="Filter by status">
+          <button type="button" data-view="open" aria-pressed="true">Open</button>
+          <button type="button" data-view="mine" aria-pressed="false">Mine</button>
+          <button type="button" data-view="answered" aria-pressed="false">Answered</button>
+          <button type="button" data-view="referred" aria-pressed="false">Referred</button>
+        </div>
+        <div class="filters">
+          <label class="sr-only" for="langFilter">Language</label>
+          <select id="langFilter"><option value="">All languages</option><option value="mr">Marathi</option><option value="hi">Hindi</option><option value="en">English</option></select>
+        </div>
+      </div>
+      <ul class="queue" id="queue" aria-live="polite"></ul>
+    </section>
+
+    <section class="panel detail" id="detail" aria-live="polite">
+      <div class="detail-empty">Choose a case from the list to review it.</div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+      const $ = (s) => document.querySelector(s);
+      const LANG = { mr: "Marathi", hi: "Hindi", en: "English" };
+      const STATUS = { pending: "Waiting", in_review: "In review", answered: "Answered", referred: "Referred" };
+      const REASON_TEXT = {
+        DOSE_QUESTION: "Asks for a chemical or fertiliser dose", HIGH_RISK_TOPIC: "Topic usually needs chemical advice",
+        CHEMICAL_ANSWER: "Closest past answer is chemical", CROP_MISMATCH: "Past answers are for another crop",
+        LOW_CONFIDENCE: "No close enough past answer", CROP_MISSING: "Crop not known", RETRIEVED_LOW_RISK: "Low-risk past answer"
+      };
+      let cases = [];
+      let view = "open";
+      let selected = null;
+      let token = sessionStorageGet("expertToken");
+
+      function sessionStorageGet(key) { try { return sessionStorage.getItem(key) || ""; } catch (_) { return ""; } }
+      function storageGet(key) { try { return localStorage.getItem(key) || ""; } catch (_) { return ""; } }
+      function storageSet(key, value) { try { localStorage.setItem(key, value); } catch (_) { /* private mode */ } }
+
+      const nameInput = $("#expertName");
+      nameInput.value = storageGet("expertName");
+      // `change` fires on blur, i.e. on the mousedown of the expert's next click. Rebuilding the
+      // queue then would swap the row out from under the pointer and swallow that click, so
+      // the list is only redrawn where the name changes what it shows.
+      nameInput.addEventListener("change", () => {
+        storageSet("expertName", nameInput.value.trim());
+        if (view === "mine") render();
+        if (selected) openCase(selected, { keepQueue: true });
+      });
+      const expert = () => nameInput.value.trim();
+
+      function el(tag, props = {}, ...children) {
+        const node = document.createElement(tag);
+        for (const [key, value] of Object.entries(props)) {
+          if (key === "class") node.className = value;
+          else if (key === "text") node.textContent = value;
+          else if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+          else if (value !== undefined && value !== null && value !== false) node.setAttribute(key, value === true ? "" : value);
+        }
+        for (const child of children.flat()) if (child !== null && child !== undefined && child !== false) node.append(child);
+        return node;
+      }
+
+      async function api(path, options = {}) {
+        const headers = { ...(options.body ? { "Content-Type": "application/json" } : {}), ...(token ? { "X-Expert-Token": token } : {}) };
+        const response = await fetch(path, { ...options, headers });
+        if (response.status === 401) {
+          const entered = window.prompt("This desk is protected. Enter the expert token:");
+          if (entered) { token = entered.trim(); try { sessionStorage.setItem("expertToken", token); } catch (_) {} return api(path, options); }
+        }
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof body.detail === "string" ? body.detail : `Request failed (${response.status})`);
+        return body;
+      }
+
+      function age(iso) {
+        const minutes = Math.max(0, (Date.now() - new Date(iso).getTime()) / 60000);
+        if (minutes < 1) return "just now";
+        if (minutes < 60) return `${Math.round(minutes)} min ago`;
+        if (minutes < 1440) return `${Math.round(minutes / 60)} h ago`;
+        return `${Math.round(minutes / 1440)} d ago`;
+      }
+      function stamp(iso) { return new Date(iso).toLocaleString([], { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); }
+      const chip = (text, cls = "") => el("span", { class: `chip ${cls}`, text });
+
+      async function loadStats() {
+        try {
+          const s = await api("/api/expert/stats");
+          $("#statPending").textContent = s.by_status.pending;
+          $("#statReview").textContent = s.by_status.in_review;
+          $("#statAnswered").textContent = s.by_status.answered;
+          $("#statReferred").textContent = s.by_status.referred;
+          const m = s.median_minutes_to_resolve;
+          $("#statMedian").textContent = m === null ? "–" : m < 60 ? `${Math.round(m)} min` : `${(m / 60).toFixed(1)} h`;
+        } catch (_) { /* the queue shows the error */ }
+      }
+
+      async function loadQueue() {
+        try {
+          const lang = $("#langFilter").value;
+          const data = await api(`/api/expert/cases${lang ? `?language=${lang}` : ""}`);
+          cases = data.cases;
+          render();
+        } catch (error) {
+          $("#queue").replaceChildren(el("li", { class: "empty", text: `Could not load cases: ${error.message}` }));
+        }
+        loadStats();
+      }
+
+      function visible() {
+        if (view === "open") return cases.filter((c) => c.status === "pending" || c.status === "in_review");
+        if (view === "mine") return cases.filter((c) => expert() && (c.assigned_to === expert() || c.resolved_by === expert()));
+        return cases.filter((c) => c.status === view).reverse();
+      }
+
+      function render() {
+        const list = visible();
+        const queue = $("#queue");
+        if (!list.length) {
+          queue.replaceChildren(el("li", { class: "empty", text: view === "open" ? "No open cases. New ones appear here automatically." : "Nothing here yet." }));
+          return;
+        }
+        queue.replaceChildren(...list.map((c) => el("li", {},
+          el("button", { type: "button", class: "case-row", "data-case-id": c.case_id, "aria-current": c.case_id === selected ? "true" : "false", onclick: () => openCase(c.case_id) },
+            el("div", { class: "row-top" }, el("b", { text: c.case_id }), el("span", { text: age(c.created_at) })),
+            el("p", { class: "row-q", text: c.original_text }),
+            c.language !== "en" ? el("p", { class: "row-en", text: c.english_text }) : null,
+            el("div", { class: "chips" },
+              chip(STATUS[c.status], `status-${c.status}`),
+              chip(LANG[c.language] || c.language, "lang"),
+              c.assigned_to && c.status === "in_review" ? chip(c.assigned_to === expert() ? "You" : c.assigned_to, "lang") : null,
+              ...c.reasons.slice(0, 2).map((r) => chip(REASON_TEXT[r] || r)))))));
+      }
+
+      async function openCase(caseId, { keepQueue = false } = {}) {
+        selected = caseId;
+        if (!keepQueue) document.querySelectorAll(".case-row").forEach((row) => {
+          row.setAttribute("aria-current", String(row.dataset.caseId === caseId));
+        });
+        const detail = $("#detail");
+        try {
+          const c = await api(`/api/expert/cases/${encodeURIComponent(caseId)}`);
+          if (selected !== caseId) return;
+          detail.replaceChildren(...caseView(c));
+        } catch (error) {
+          detail.replaceChildren(el("div", { class: "detail-empty", text: `Could not open ${caseId}: ${error.message}` }));
+        }
+      }
+
+      function caseView(c) {
+        const open = c.status === "pending" || c.status === "in_review";
+        const mine = c.status === "in_review" && c.assigned_to === expert();
+        const lockedByOther = c.status === "in_review" && c.assigned_to !== expert();
+        const out = [];
+        out.push(el("div", { class: "detail-head" },
+          el("div", {}, el("h2", { text: c.case_id }),
+            el("p", { text: `${LANG[c.language] || c.language} · received ${stamp(c.created_at)} (${age(c.created_at)})` })),
+          el("div", { class: "chips" }, chip(STATUS[c.status], `status-${c.status}`),
+            c.assigned_to ? chip(`Reviewer: ${c.assigned_to}`, "lang") : null)));
+
+        out.push(el("div", { class: "section" }, el("h3", { text: "Farmer's question" }),
+          el("p", { class: "question", lang: c.language, text: c.original_text }),
+          c.language !== "en" ? el("p", { class: "translation", text: `English: ${c.english_text}` }) : null));
+
+        out.push(el("div", { class: "section" }, el("h3", { text: "Why it came to you" }),
+          el("ul", { class: "reasons" }, ...c.route_reasons.map((r) => el("li", {},
+            el("code", { text: r.code }), el("span", { text: r.detail || REASON_TEXT[r.code] || "" }))))));
+
+        if (c.conversation && c.conversation.length > 1) {
+          out.push(el("div", { class: "section" }, el("h3", { text: "Conversation so far" }),
+            el("ul", { class: "turns" }, ...c.conversation.map((t) => el("li", {},
+              el("span", { text: `${stamp(t.created_at)} · ${t.route.replace(/_/g, " ").toLowerCase()}` }),
+              el("span", { lang: c.language, text: t.text }))))));
+        }
+
+        if (c.draft) {
+          out.push(el("div", { class: "section" }, el("h3", { text: "Closest past KCC answer (unverified)" }),
+            el("p", { class: "draft", lang: "mr", text: c.draft }),
+            el("p", { class: "draft-note", text: "Given by an advisor on a similar past call. It was not checked for this farmer: verify the crop, product and dose before approving." }),
+            sourcesView(c.sources)));
+        }
+
+        if (!open) {
+          out.push(el("div", { class: "section" }, el("h3", { text: c.status === "answered" ? "Sent to the farmer" : "Referral sent to the farmer" }),
+            el("div", { class: "result" }, el("p", { lang: c.language, text: c.farmer_reply || "" }),
+              el("div", { class: "checks" }, ...checkChips(c))),
+            el("p", { class: "draft-note", text: `By ${c.resolved_by} · ${stamp(c.resolved_at)}${c.delivered_at ? " · seen by farmer" : " · not yet seen by farmer"}` })));
+          return out;
+        }
+
+        const compose = el("div", { class: "section compose" });
+        out.push(compose);
+        if (!expert()) {
+          compose.append(el("div", { class: "lock", text: "Enter your name at the top right to review this case." }));
+          return out;
+        }
+        if (lockedByOther) {
+          compose.append(el("div", { class: "lock", text: `${c.assigned_to} is reviewing this case.` }));
+          return out;
+        }
+        if (!mine) {
+          compose.append(el("h3", { text: "Review" }),
+            el("p", { class: "draft-note", text: "Claim the case so no one else answers it at the same time." }),
+            el("div", { class: "actions" }, el("button", { type: "button", class: "btn primary", text: "Claim case", onclick: () => act(c, "claim") })));
+          return out;
+        }
+        const answerBox = el("textarea", { id: "answerText", maxlength: "2000", placeholder: "Write the answer in Marathi, Hindi or English." });
+        const noteBox = el("input", { id: "referNote", class: "note-input", maxlength: "500", placeholder: "Optional note for the farmer (for referrals)" });
+        const alert = el("p", { class: "alert", hidden: true, role: "alert" });
+        compose.append(el("h3", { text: "Your answer" }), alert,
+          el("label", { for: "answerText", text: `Answer for the farmer (sent in ${LANG[c.language] || c.language})` }), answerBox,
+          el("p", { class: "hint", text: "If you write in another language it is translated for the farmer. A translation that changes any number or crop is not sent; your own words go instead." }),
+          el("div", { class: "actions" },
+            el("button", { type: "button", class: "btn primary", text: "Send answer", onclick: () => act(c, "answer", { answer: answerBox.value }, alert) }),
+            c.draft ? el("button", { type: "button", class: "btn", text: "Edit past answer", onclick: () => { answerBox.value = c.draft; answerBox.focus(); } }) : null,
+            c.draft ? el("button", { type: "button", class: "btn", text: "Approve past answer as is", onclick: () => act(c, "approve_draft", {}, alert) }) : null),
+          el("h3", { text: "Or refer", style: "margin-top:18px" }),
+          el("label", { class: "sr-only", for: "referNote", text: "Referral note" }), noteBox,
+          el("div", { class: "actions" },
+            el("button", { type: "button", class: "btn", text: "Refer to local officer", onclick: () => act(c, "refer", { note: noteBox.value }, alert) }),
+            el("button", { type: "button", class: "btn quiet", text: "Release case", onclick: () => act(c, "release") })));
+        return out;
+      }
+
+      function sourcesView(sources) {
+        if (!sources || !sources.length) return null;
+        return el("details", { class: "sources" }, el("summary", { text: `Similar past calls (${Math.min(sources.length, 5)})` }),
+          ...sources.slice(0, 5).map((s) => el("div", { class: "source" },
+            el("div", { class: "meta", text: `KCC call ${s.kcc_call_id} · ${String(s.created_on || "").slice(0, 10)} · ${s.district || "district n/a"} · ${s.crop || "crop n/a"} · similarity ${Number(s.similarity).toFixed(2)}` }),
+            el("p", { text: `Q: ${s.question}` }), el("p", { lang: "mr", text: `A: ${s.answer}` }))));
+      }
+
+      function checkChips(c) {
+        const k = c.reply_checks || {};
+        const out = [];
+        const loc = k.localization || "";
+        if (loc === "translated") out.push(chip("Translated for farmer", "status-answered"));
+        else if (loc.startsWith("fallback")) out.push(chip(`Sent untranslated (${loc.split(":")[1] || "check failed"})`));
+        if (k.chemical) out.push(chip("Contains chemical advice"));
+        if (k.time_sensitive) out.push(chip("Time-sensitive"));
+        if (c.reusable) out.push(chip("Reusable for future answers", "status-answered"));
+        return out;
+      }
+
+      async function act(c, action, extra = {}, alertBox = null) {
+        const buttons = [...document.querySelectorAll("#detail .btn")];
+        buttons.forEach((b) => { b.disabled = true; });
+        try {
+          const path = `/api/expert/cases/${encodeURIComponent(c.case_id)}`;
+          if (action === "claim" || action === "release") {
+            await api(`${path}/${action}`, { method: "POST", body: JSON.stringify({ expert: expert() }) });
+          } else {
+            await api(`${path}/resolve`, { method: "POST", body: JSON.stringify({ expert: expert(), action, ...extra }) });
+          }
+          await loadQueue();
+          await openCase(c.case_id);
+        } catch (error) {
+          if (alertBox) { alertBox.textContent = error.message; alertBox.hidden = false; }
+          else window.alert(error.message);
+          buttons.forEach((b) => { b.disabled = false; });
+        }
+      }
+
+      document.querySelectorAll(".tabs button").forEach((button) => button.addEventListener("click", () => {
+        view = button.dataset.view;
+        document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+        render();
+      }));
+      $("#langFilter").addEventListener("change", loadQueue);
+      window.setInterval(() => { if (!document.hidden) loadQueue(); }, 15000);
+      loadQueue();
+    })();
+  </script>
+</body>
+</html>

@@ -7,6 +7,9 @@ from datetime import datetime, timezone
 from src.triage.crops import detect_crops
 
 MAX_PENDING_SECONDS = 10 * 60
+# A crop answer is short ("cotton", "कापूस आहे", "cotton, 40 days"). A longer message
+# that names a crop is a new question and must not be swapped for the pending one.
+MAX_CROP_REPLY_WORDS = 5
 
 
 @dataclass(frozen=True)
@@ -30,6 +33,8 @@ def apply_followup(store, session_id: str, text: str, *, now: datetime | None = 
 
     if pending["reason"] == "CROP_MISSING":
         crops = detect_crops(text)
+        if crops and len(text.split()) > MAX_CROP_REPLY_WORDS:
+            return ClarifiedInput(text)
         if crops:
             return ClarifiedInput(pending["original_text"], crop=crops[0], used_pending=True)
         return ClarifiedInput(f"{pending['original_text']} {text}".strip(), used_pending=True)

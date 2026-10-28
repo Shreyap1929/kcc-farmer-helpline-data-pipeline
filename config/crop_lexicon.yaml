@@ -9,7 +9,7 @@ crops:
   "Pigeon pea (red gram/arhar/tur)": [tur, toor, tuar, arhar, pigeon pea, pigeonpea, red gram, "तूर", "तुर", "तुरी*", "अरहर"]
   "Maize (Makka)": [maize, corn, makka, maka, "मका", "मक्का", "मक्याची", "मक्के"]
   "Sugarcane (Noble Cane)": [sugarcane, sugar cane, ganna, "ऊस", "उस", "ऊसा*", "उसा*", "गन्ना", "गन्ने"]
-  "Wheat": [wheat, gahu, gehu, gehun, "गहू", "गव्हा*", "गेहूं", "गेहूँ"]
+  "Wheat": [wheat, gahu, gehu, gehun, "गहू", "गव्हा*", "गेहूं", "गेहूँ", "गेहुं", "गेहुँ"]  # short-u forms: Whisper spelling
   "Turmeric": [turmeric, halad, haldi, "हळद", "हळदी*", "हल्दी"]
   "Sorghum (Jowar/Great Millet)": [sorghum, jowar, jwari, jowari, "ज्वारी", "ज्वार"]
   "Paddy (Dhan)": [paddy, rice, dhan, bhat crop, "भात", "धान", "चावल"]
