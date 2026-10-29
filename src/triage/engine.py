@@ -48,11 +48,15 @@ class TriageEngine:
     @classmethod
     def load(cls, cutoff: str | None = None) -> "TriageEngine":
         # Heavy imports kept local so the API module imports instantly in tests.
+        from src.triage.answerability import AnswerPolicy
         from src.triage.classifier import QueryClassifier
         from src.triage.embeddings import embed_texts
         from src.triage.retrieval import Retriever
 
-        engine = cls(Retriever.from_views(cutoff=cutoff), QueryClassifier.load(), Gate(), embed_texts)
+        # The answer policy is used only if its evaluation adopted it (and config allows).
+        policy = AnswerPolicy.load() if load_config()["gate"].get("use_answer_policy", True) else None
+        engine = cls(Retriever.from_views(cutoff=cutoff), QueryClassifier.load(),
+                     Gate(answer_policy=policy), embed_texts)
         # Load the sentence model now, so the first real call is not ~9 s slower.
         engine.triage("warm-up")
         return engine
@@ -130,5 +134,10 @@ class TriageEngine:
             "embedding_model": load_config()["embedding"]["model"],
             "thresholds": {
                 k: self.gate.t[k] for k in ("answer_min_similarity", "out_of_scope_max_similarity", "crop_min_confidence")
+            },
+            "answer_policy": None if self.gate.answer_policy is None else {
+                "mode": self.gate.answer_policy.mode,
+                "threshold": self.gate.answer_policy.threshold,
+                "decision": self.gate.answer_policy.meta.get("decision"),
             },
         }

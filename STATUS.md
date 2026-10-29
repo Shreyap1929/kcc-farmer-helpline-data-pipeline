@@ -10,6 +10,49 @@ pipelines to refresh them, do not edit them by hand.
 | 2. Triage core (text) | Amir | Done | 2026-10-27 22:50 |
 | 3. Farmer chat and voice | Shreya (built), Amir (fixes + validation) | Done - fixed and measured end to end | 2026-10-28 |
 | 4. Expert review (queue, LangGraph workflow, expert desk, reply to farmer, answer reuse) | Amir | Done - first cut | 2026-10-28 22:25 |
+| 5. Answerability model (source of truth 8B) | Amir | Built and evaluated - not adopted by its pre-registered rule; team decision pending | 2026-10-29 11:10 |
+
+---
+
+## Stage 5 - Answerability model
+
+**Done by Amir** - 2026-10-29, 10:30 to 11:10 IST
+Design: [docs/stage5_answerability.md](docs/stage5_answerability.md) - Report: [reports/stage5/answerability_report.md](reports/stage5/answerability_report.md)
+
+The gate's single similarity cut-off (0.9825, calibrated on English) is why Marathi/Hindi
+questions were never auto-answered. A learned model now estimates whether the best past
+answer will match what an advisor would say. It replaces only that comparison; every
+safety rule still runs first.
+
+| Piece | Where |
+|---|---|
+| Features + answer policy | `src/triage/answerability.py` |
+| Gate hook (refusals keep `LOW_CONFIDENCE`) | `src/triage/gate.py`, `src/triage/engine.py`, `config/triage.yaml` (`use_answer_policy`) |
+| Training, evaluation, pre-registered decision | `src/triage/answerability_train.py` (`python -m src.triage.answerability_train`) |
+| Console "answer fit" bar | `src/api/static/index.html` |
+| Policy fix found while testing | `"rate today"` now a live-market phrase (`src/triage/policy.py`) |
+| Tests | `tests/test_answerability.py` (19), `tests/test_policy.py` (+1) |
+
+| Measure (test months) | Stage 2 rule | Logistic model |
+|---|---:|---:|
+| English answered / close rate | 1,112 / 27.2% | 684 / **40.1%** |
+| English never-seen questions close rate | 13.1% | **23.8%** |
+| Marathi + Hindi answered / close rate | 0 / - | **59 / 32.2%** |
+| Close answers, all languages | **302** | 293 |
+| Stage 4 parity set answered, mr / hi | 0 / 0 | 6 / 13 |
+| Dose questions answered | 0 | 0 |
+| Validation AUC (model vs similarity alone) | 0.71 | **0.82** |
+| Full test suite | | **237 passed, 0 failed** |
+
+**Decision: keep the Stage 2 rule** (pre-registered criterion: more close answers in
+total; the model gives 9 fewer). Production is unchanged (artifact saved as `mode: none`).
+But the Stage 2 rule itself is below its own 30.3% target on test (27.2%), which the
+criterion did not check. Adopting the model trades ~40% of English auto-answers for much
+more accurate ones and gives Marathi/Hindi their first auto-answers: **a team decision**.
+
+Caveats: "close" is still a proxy (no golden set); Devanagari questions are machine
+rephrasings; 59 Devanagari answered cases (CI 20-44%). Rephrasings cost ~100 Groq calls
+(free tier rate-limited; cached).
 
 ---
 

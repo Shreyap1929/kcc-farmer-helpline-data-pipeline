@@ -11,6 +11,7 @@ point to a live or official source, or hand the case to a human expert.
 | 2 | Triage core: content policy, classifiers, multilingual retrieval, routing gate, API + console ([design](docs/stage2_triage_core.md)) | Done |
 | 3 | Farmer chat and voice: Whisper STT, grounded LLM rewriting, TTS, SQLite sessions ([design](docs/stage3_chat_voice.md), [fixes](docs/stage3_fixes_stage4_review.md)) | Done (fixed and measured end to end 2026-10-28) |
 | 4 | Expert review: case queue, LangGraph resolution workflow, expert desk, answers delivered back to the farmer ([design](docs/stage3_fixes_stage4_review.md)) | Done (first cut) |
+| 5 | Answerability model: learned "will this past answer fit?" in place of the similarity cut-off ([design](docs/stage5_answerability.md), [report](reports/stage5/answerability_report.md)) | Evaluated; not adopted by its pre-registered rule (team decision pending) |
 
 Progress log: [STATUS.md](STATUS.md).
 

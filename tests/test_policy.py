@@ -29,6 +29,7 @@ from src.triage.policy import (
     "सोयाबीनला आज काय भाव आहे",
     "प्याज का आज का भाव क्या है",
     "MARKETRATE OF CORIANDER CROP ?",
+    "onion rate today",
 ])
 def test_live_market_intent(text):
     assert question_signals(text).live_market

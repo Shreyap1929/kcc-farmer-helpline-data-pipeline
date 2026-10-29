@@ -9,8 +9,10 @@ Routes, checked in this order:
 5. EXPERT_REVIEW      dose/chemical question (always, by decision)
 6. CLARIFY            answer depends on a crop nobody has named
 7. EXPERT_REVIEW      confident pest/nutrient/fertiliser/weed topic, best historical
-                      answer gives chemical advice, crop mismatch, or similarity
-                      below the calibrated answer threshold
+                      answer gives chemical advice, crop mismatch, or a weak match:
+                      similarity below the calibrated threshold or, when an answer
+                      policy was adopted (src/triage/answerability.py), the policy
+                      says the past answer is unlikely to fit
 8. ANSWER             low-risk, close historical answer, shown with its source
 
 The gate is a pure function of its inputs so it can be unit-tested with fakes
@@ -52,6 +54,7 @@ class Decision:
     crop_source: str | None = None
     grounded: bool | None = None
     sources: list[Hit] = field(default_factory=list)
+    answerability: float | None = None
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -73,8 +76,9 @@ GENERIC_CROPS = {"", "Others", "Other"}
 
 
 class Gate:
-    def __init__(self, thresholds: dict | None = None):
+    def __init__(self, thresholds: dict | None = None, answer_policy=None):
         self.t = thresholds or gate_thresholds()
+        self.answer_policy = answer_policy
         self.pointers = load_config()["pointers"]
         self.crop_dependent = set(self.t["crop_dependent_types"])
         self.expert_only = set(self.t["expert_only_types"])
@@ -239,20 +243,27 @@ class Gate:
                 "An agriculture expert will check the right product and dose for you and reply.",
                 draft_for_expert=best.answer, answer_source=best, **base,
             )
-        if best.similarity < self.t["answer_min_similarity"]:
+        if self.answer_policy is not None:
+            verdict = self.answer_policy.decide(inp.text, pred, crop, best, candidates, hits)
+            fits, fit_detail, p = verdict.answer, verdict.detail, verdict.probability
+        else:
+            fits, p = best.similarity >= self.t["answer_min_similarity"], None
+            fit_detail = (f"Closest past question is not close enough ({best.similarity:.3f} < "
+                          f"{self.t['answer_min_similarity']:.3f}).")
+        if not fits:
             return Decision(
-                Route.EXPERT_REVIEW,
-                [Reason("LOW_CONFIDENCE",
-                        f"Closest past question is not close enough ({best.similarity:.3f} < "
-                        f"{self.t['answer_min_similarity']:.3f}).")],
+                Route.EXPERT_REVIEW, [Reason("LOW_CONFIDENCE", fit_detail)],
                 "An agriculture expert will review your question and reply.",
-                draft_for_expert=best.answer, answer_source=best, **base,
+                draft_for_expert=best.answer, answer_source=best, answerability=p, **base,
             )
 
         # 8. Answer from history, with its source
         reply = best.answer
         missing = ungrounded_numbers(reply, [best.answer])
-        reasons = [Reason("RETRIEVED_LOW_RISK",
-                          f"Close past answer ({best.similarity:.3f}) with no chemical advice; "
-                          f"asked {best.times_asked}x, {best.distinct_answers} answer variant(s).")]
-        return Decision(Route.ANSWER, reasons, reply, answer_source=best, grounded=not missing, **base)
+        detail = (f"Close past answer ({best.similarity:.3f}) with no chemical advice; "
+                  f"asked {best.times_asked}x, {best.distinct_answers} answer variant(s).")
+        if self.answer_policy is not None:
+            detail += " " + fit_detail
+        reasons = [Reason("RETRIEVED_LOW_RISK", detail)]
+        return Decision(Route.ANSWER, reasons, reply, answer_source=best, grounded=not missing,
+                        answerability=p, **base)
