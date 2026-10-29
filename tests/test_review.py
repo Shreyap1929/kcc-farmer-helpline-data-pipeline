@@ -175,6 +175,7 @@ def api(tmp_path, monkeypatch):
     monkeypatch.setattr(composer, "get_groq_client", lambda: None)
     monkeypatch.setattr(app_module, "translate_to_english", lambda text, language: f"EN: {text}")
     monkeypatch.delenv("EXPERT_TOKEN", raising=False)
+    monkeypatch.delenv("EXPERT_ACCOUNTS", raising=False)
 
     async def fake_tts(text, language):
         return b"expert-audio"
@@ -233,6 +234,44 @@ def test_expert_token_is_enforced_when_configured(api, monkeypatch):
     assert api.get("/api/expert/cases").status_code == 401
     assert api.get("/api/expert/cases", headers={"X-Expert-Token": "wrong"}).status_code == 401
     assert api.get("/api/expert/cases", headers={"X-Expert-Token": "s3cret"}).status_code == 200
+
+
+def test_personal_accounts_attribute_actions_to_the_token_owner(api, monkeypatch):
+    monkeypatch.setenv("EXPERT_ACCOUNTS", "Dr Patil:tok-patil,Dr Shinde:tok-shinde")
+    monkeypatch.setenv("EXPERT_TOKEN", "shared")  # personal accounts take precedence
+    sid, case_id = _expert_case(api)
+    patil, shinde = {"X-Expert-Token": "tok-patil"}, {"X-Expert-Token": "tok-shinde"}
+    assert api.get("/api/expert/cases").status_code == 401
+    assert api.get("/api/expert/cases", headers={"X-Expert-Token": "shared"}).status_code == 401
+    assert api.get("/api/expert/me", headers=patil).json() == {"expert": "Dr Patil", "personal_accounts": True}
+
+    # The name in the body cannot impersonate another expert.
+    claimed = api.post(f"/api/expert/cases/{case_id}/claim", json={"expert": "Dr Shinde"}, headers=patil)
+    assert claimed.json()["assigned_to"] == "Dr Patil"
+    assert api.post(f"/api/expert/cases/{case_id}/claim", json={}, headers=shinde).status_code == 409
+    resolved = api.post(f"/api/expert/cases/{case_id}/resolve", headers=patil,
+                        json={"action": "answer", "answer": "पिकाची पाहणी करा."}).json()
+    assert resolved["status"] == "answered"
+    events = api.get(f"/api/expert/cases/{case_id}", headers=patil).json()["events"]
+    assert {e["actor"] for e in events if e["kind"] in ("claimed", "answered")} == {"Dr Patil"}
+
+
+def test_shared_token_mode_still_needs_a_typed_name(api, monkeypatch):
+    _, case_id = _expert_case(api)
+    assert api.get("/api/expert/me").json() == {"expert": None, "personal_accounts": False}
+    assert api.post(f"/api/expert/cases/{case_id}/claim", json={"expert": "  "}).status_code == 422
+
+
+def test_account_parsing_and_token_command(monkeypatch, capsys):
+    from src.api.review import expert_accounts, main
+    monkeypatch.setenv("EXPERT_ACCOUNTS", " Dr A. Patil:t1 , broken, :t2, Dr Shinde:t3:x ")
+    assert expert_accounts() == {"t1": "Dr A. Patil", "x": "Dr Shinde:t3"}
+    monkeypatch.setenv("EXPERT_ACCOUNTS", "Dr A:t1")
+    main(["add", "Dr B"])
+    out = capsys.readouterr().out
+    assert "EXPERT_ACCOUNTS=Dr A:t1,Dr B:" in out
+    with pytest.raises(SystemExit):
+        main(["add", "bad:name"])
 
 
 def test_marathi_answer_with_variety_codes_is_not_retranslated(store):

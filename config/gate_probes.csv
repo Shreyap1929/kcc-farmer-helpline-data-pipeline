@@ -25,7 +25,7 @@ SOWING TIME OF GROUNDNUT CROP ?,en,,ANSWER,Sowing Time and Weather,Exact wording
 Varieties of wheat,en,,ANSWER,Varieties,"Paraphrase of a frequent question; sits right at the calibrated answer threshold, so it can fail safe to an expert."
 Sowing time of maize,en,,ANSWER,Cultural Practices,Fails safe: best match is below the conservative calibrated answer threshold.
 Contact number of Mahatma Phule Krishi Vidyapeeth Rahuri,en,,ANSWER,Cultural Practices,pointer answer
-गव्हाचे सुधारित वाण कोणते आहेत,mr,,ANSWER,Varieties,"Known gap: Marathi questions score below the English-calibrated answer threshold, so they fail safe to an expert. Fix in Stage 3: translate to English first."
+गव्हाचे सुधारित वाण कोणते आहेत,mr,,ANSWER,Varieties,"Known gap: fails safe to an expert. Translate-first did not fix it (Stage 4); the Stage 5 answerability model answers some Marathi/Hindi questions but not this one."
 Seed rate of soybean per acre,en,,ANSWER,Seeds,Seed rate is not a chemical dose. Fails safe: best match is below the conservative calibrated answer threshold.
 My crop has a disease what should I do,en,,CLARIFY,Plant Protection,no crop named
 पिकावर रोग आला आहे,mr,,CLARIFY,Plant Protection,Marathi - no crop named

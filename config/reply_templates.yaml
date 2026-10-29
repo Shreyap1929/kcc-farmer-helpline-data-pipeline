@@ -1,8 +1,10 @@
 # Fixed farmer-facing replies for every route that is not a grounded historical answer.
 # Placeholders: {case_id}, and the helpline numbers from config/triage.yaml `pointers`
 # ({kcc_helpline}, {pm_kisan_helpline}, {crop_insurance_helpline}).
-# Marathi and Hindi wording still needs a native speaker's review before real use.
-needs_native_review: true
+# Marathi and Hindi wording: native-speaker review reported done by Amir and Shreya
+# (2026-10-29). Re-review any template you change.
+needs_native_review: false
+native_review: {by: "Amir, Shreya", reported: "2026-10-29"}
 templates:
   CLARIFY_CROP_MISSING:
     en: "Which crop is this about? Please also tell us how old the crop is."

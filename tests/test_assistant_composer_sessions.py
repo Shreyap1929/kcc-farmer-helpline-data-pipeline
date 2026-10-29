@@ -52,7 +52,9 @@ def test_non_answer_routes_use_fixed_multilingual_templates_and_review_flag():
     assert "unsafe ignored" not in mr
     import yaml
     from src.assistant.composer import TEMPLATE_PATH
-    assert yaml.safe_load(TEMPLATE_PATH.read_text(encoding="utf-8"))["needs_native_review"] is True
+    meta = yaml.safe_load(TEMPLATE_PATH.read_text(encoding="utf-8"))
+    # Reviewed templates must say who reviewed them; unreviewed ones must stay flagged.
+    assert meta["needs_native_review"] is True or meta["native_review"]["by"]
 
 
 def test_expert_reply_does_not_include_draft():

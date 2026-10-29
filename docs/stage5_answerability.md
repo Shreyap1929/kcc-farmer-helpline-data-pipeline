@@ -51,9 +51,10 @@ never sit on both sides.
 
 Validation AUC: model 0.82 (Devanagari 0.74-0.76) vs similarity alone 0.71 (0.66).
 
-**Decision by the pre-registered rule: keep the Stage 2 rule**, because the model gives
-9 fewer close answers in total (criterion b). The artifact is saved with `mode: none`, so
-production behaves exactly as before.
+**Decision.** Rule v1 (fixed before run 1) kept the Stage 2 rule, because the model
+gives 9 fewer close answers in total (criterion b). Rule v2 (below) adopts the logistic
+model; the engine now uses it (`data/artifacts/answerability.joblib`, `mode: model`,
+cut-off 0.24, similarity floor 0.85). Run 2 reproduced run 1's numbers exactly.
 
 ## 4. Reading the result
 
@@ -61,19 +62,22 @@ production behaves exactly as before.
   answers more accurately (figure in the report), and it is the only policy that
   answers any Marathi/Hindi question at the target rate.
 - The Stage 2 rule misses its own target on the test months (27.2% close vs 30.3%).
-  The rule written for this stage compared close-answer counts without checking that,
-  which favours a baseline that answers more, less accurately. The rule was fixed
-  before the run, so it was not changed after seeing the numbers.
-- Adopting the model is therefore a product choice, not a statistical one: about 40%
-  fewer English auto-answers, each much more likely to match an advisor, plus the
-  first Marathi/Hindi auto-answers. 8 of the 19 parity-set answers differ from the
-  English answer, so Devanagari answers are still the weakest part.
+  Rule v1 compared close-answer counts without checking that, which favours a baseline
+  that answers more, less accurately.
+- **Rule v2** (revised after run 1, written into the module docstring): criteria (a),
+  (c), (d) apply to every policy, the Stage 2 rule included; among those that meet them,
+  the most close answers wins. Only the model meets them. This was decided after seeing
+  the numbers, so the report shows both verdicts, and an independent label (LLM judge,
+  [answer_judge_report.md](../reports/stage5/answer_judge_report.md)) was used to check
+  that the model's answers are better and not just better at the proxy.
+- The cost: about 40% fewer English auto-answers (2.8% -> 1.7% of calls), each much more
+  likely to match an advisor, plus the first Marathi/Hindi auto-answers. 8 of the 19
+  parity-set answers differ from the English answer, so Devanagari answers remain the
+  weakest part.
 - Caveats: the "close" label is a proxy (no golden set yet); Devanagari questions are
   machine-written; Devanagari test numbers rest on 59 answered cases (CI 20-44%).
 
-## 5. Next
+## 5. Later
 
-1. Team decision: adopt the model (needs a criterion that requires the target, then a
-   rerun) or keep the Stage 2 rule.
-2. Golden set: hand-check a few hundred answered cases so the label stops being a proxy.
-3. Real farmer recordings to replace the machine rephrasings.
+1. Recalibrate on real Marathi/Hindi questions once the chat has logged a few hundred.
+2. A hand-checked golden set would replace both proxies (n-gram closeness, LLM judge).

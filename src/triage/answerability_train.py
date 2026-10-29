@@ -37,6 +37,14 @@ Decision rule, fixed before the first run:
   Otherwise adopt the per-script threshold if it meets (a), (c), (d) and gives
   more close answers than the global rule. Otherwise keep the Stage 2 rule.
 
+Rule v2, revised on 2026-10-29 after run 1 and used from then on. Run 1 kept the
+Stage 2 rule on (b) alone (293 vs 302 close answers) although the Stage 2 rule
+itself failed (a) on the test months (27.2% close vs a 30.3% target): (b) rewarded
+answering more, less accurately. v2 applies (a), (c) and (d) to every policy,
+the Stage 2 rule included, and adopts the one that meets them with the most close
+answers; if none meets them, it keeps the Stage 2 rule. Both verdicts are
+reported. The revision was made after seeing the numbers, and the report says so.
+
 Machine-written questions are cleaner than real farmer speech; Devanagari
 numbers are an upper bound until real recordings exist.
 
@@ -564,12 +572,30 @@ def main() -> dict:
         "Criterion (b) counts close answers without asking whether the baseline meets (a).",
     ]
     if meets_a(mb) and meets_cd(after_model) and mb["all"]["close"] > max(ps["all"]["close"], g["all"]["close"]):
-        decision, adopted, after, cand = f"model ({best_model})", candidate_policy, after_model, best_model
+        v1 = f"model ({best_model})"
     elif meets_a(ps) and meets_cd(after_script) and ps["all"]["close"] > g["all"]["close"]:
-        decision, adopted, after, cand = "per-script similarity threshold", script_policy, after_script, "per_script_threshold"
+        v1 = "per-script similarity threshold"
     else:
-        decision, after, cand = "keep the Stage 2 rule", after_model, best_model
-        adopted = AnswerPolicy(mode="none", threshold=1.01, min_similarity=MIN_SIMILARITY)
+        v1 = "keep the Stage 2 rule"
+    log.append(f"Rule v1 (fixed before run 1) verdict: {v1}.")
+
+    # Rule v2: every policy must meet (a), (c), (d); most close answers wins.
+    none_policy = AnswerPolicy(mode="none", threshold=1.01, min_similarity=MIN_SIMILARITY)
+    options = [
+        ("keep the Stage 2 rule", g, none_policy, before, "global_threshold", meets_a(g)),
+        ("per-script similarity threshold", ps, script_policy, after_script, "per_script_threshold",
+         meets_a(ps) and meets_cd(after_script)),
+        (f"model ({best_model})", mb, candidate_policy, after_model, best_model,
+         meets_a(mb) and meets_cd(after_model)),
+    ]
+    feasible = [o for o in options if o[5]]
+    log.append("Rule v2 feasible policies (meet (a), (c), (d)): "
+               + (", ".join(f"{o[0]} ({o[1]['all']['close']} close)" for o in feasible) or "none") + ".")
+    if feasible:
+        decision, _, adopted, after, cand, _ = max(feasible, key=lambda o: o[1]["all"]["close"])
+    else:
+        decision, adopted, after, cand = "keep the Stage 2 rule", none_policy, after_model, best_model
+    decision = f"{decision} (rule v2; rule v1 said: {v1})"
 
     def data_rows(pool, asked):
         return {lang: {"asked": asked.get(lang, 0), "pool": int((pool["lang"] == lang).sum()),

@@ -252,7 +252,7 @@
         const headers = { ...(options.body ? { "Content-Type": "application/json" } : {}), ...(token ? { "X-Expert-Token": token } : {}) };
         const response = await fetch(path, { ...options, headers });
         if (response.status === 401) {
-          const entered = window.prompt("This desk is protected. Enter the expert token:");
+          const entered = window.prompt("This desk is protected. Enter your expert token:");
           if (entered) { token = entered.trim(); try { sessionStorage.setItem("expertToken", token); } catch (_) {} return api(path, options); }
         }
         const body = await response.json().catch(() => ({}));
@@ -460,7 +460,14 @@
       }));
       $("#langFilter").addEventListener("change", loadQueue);
       window.setInterval(() => { if (!document.hidden) loadQueue(); }, 15000);
-      loadQueue();
+      // With personal accounts the server says who is signed in; the name is not editable.
+      api("/api/expert/me").then((me) => {
+        if (!me.expert) return;
+        nameInput.value = me.expert;
+        nameInput.readOnly = true;
+        nameInput.title = "Signed in with your personal expert token";
+        if (view === "mine") render();
+      }).catch(() => {}).finally(loadQueue);
     })();
   </script>
 </body>

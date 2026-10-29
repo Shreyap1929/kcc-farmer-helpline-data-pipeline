@@ -207,12 +207,14 @@ Go / no-go checkpoints:
 
 ## 14. Open items checklist
 
-- [ ] Read the licence and terms of use of the KCC resource.
-- [ ] Download remaining 2025 months (June to September first) and 2024; verify per-month row counts.
-- [ ] Run the audit: rows after deduplication, empty-answer rate, language mix per district, top query types and crops.
-- [ ] Test Groq Whisper on recorded Marathi and Hindi sentences.
-- [ ] Choose v1 languages from the audit.
-- [ ] Decide the "close enough" threshold for the answerability label.
-- [ ] Confirm the live-data pointer route.
-- [ ] Choose text-to-speech and frontend (Next.js or Streamlit).
-- [ ] Agree who plays the expert in demos (simulated; say so in the report).
+Closed on 2026-10-29 (final status in [final_report.md](final_report.md)).
+
+- [x] Read the licence and terms of use of the KCC resource -> GODL-India, attribution statement in [data_licence.md](data_licence.md).
+- [x] Download remaining 2025 months and 2024; verify per-month row counts -> 2023-11 to 2025-07 (Feb 2024 missing upstream; its file is a copy of Jan 2024), counts tested in `tests/test_clean.py`.
+- [x] Run the audit -> [reports/cleaning_report.md](../reports/cleaning_report.md), `reports/value_counts/`.
+- [x] Test Groq Whisper on recorded Marathi and Hindi sentences -> synthetic clips measured ([voice report](../reports/stage3/voice_eval_report.md)); real recordings reported done by Amir and Shreya.
+- [x] Choose v1 languages from the audit -> Marathi, Hindi and English.
+- [x] Decide the "close enough" threshold for the answerability label -> char n-gram cosine >= 0.5, target = 80% of advisor agreement ([gate report](../reports/stage2/gate_report.md)); checked against an LLM judge in Stage 5.
+- [x] Confirm the live-data pointer route -> built; time-sensitive questions answered from history 0.0%.
+- [x] Choose text-to-speech and frontend -> Edge TTS with gTTS fallback; plain HTML pages served by FastAPI instead of Next.js/Streamlit.
+- [x] Agree who plays the expert in demos -> simulated by the team; stated in the final report.
