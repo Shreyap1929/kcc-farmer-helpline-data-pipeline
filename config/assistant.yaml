@@ -1,7 +1,11 @@
 groq:
   transcription_model: whisper-large-v3
   translation_model: whisper-large-v3
-  chat_model: llama-3.1-8b-instant
+  # llama-3.1-8b-instant was retired by Groq (404 model_not_found), which silently
+  # disabled every rewrite and translation. Chosen by a measured comparison of the
+  # models this key can reach (docs/stage3_fixes_stage4_review.md).
+  chat_model: qwen/qwen3.8-27b
+  reasoning_effort: none
   temperature: 0
   timeout_seconds: 20
 
@@ -20,3 +24,9 @@ tts:
     mr: mr
     hi: hi
     en: en
+
+review:
+  # Minimum same-language embedding similarity to reuse an expert's answer for a new
+  # question. Chosen by python -m src.review.calibrate_reuse
+  # (reports/stage4/reviewed_reuse_report.md).
+  reuse_min_similarity: 0.936

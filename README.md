@@ -9,7 +9,8 @@ point to a live or official source, or hand the case to a human expert.
 |---|---|---|
 | 1 | Data cleaning pipeline ([spec](docs/kcc_data_cleaning_stage1.md)) | Done |
 | 2 | Triage core: content policy, classifiers, multilingual retrieval, routing gate, API + console ([design](docs/stage2_triage_core.md)) | Done |
-| 3 | Farmer chat, speech adapters, safe reply composition, SQLite expert-case persistence | In progress; measured validation has blockers |
+| 3 | Farmer chat and voice: Whisper STT, grounded LLM rewriting, TTS, SQLite sessions ([design](docs/stage3_chat_voice.md), [fixes](docs/stage3_fixes_stage4_review.md)) | Done (fixed and measured end to end 2026-10-28) |
+| 4 | Expert review: case queue, LangGraph resolution workflow, expert desk, answers delivered back to the farmer ([design](docs/stage3_fixes_stage4_review.md)) | Done (first cut) |
 
 Progress log: [STATUS.md](STATUS.md).
 
@@ -56,7 +57,12 @@ Stage 3 adds a farmer interface at `http://localhost:8000/chat`; the operator co
 remains at `/`. It supports English, Marathi and Hindi typed chat, browser-recorded
 voice notes, Groq Whisper transcription, grounded historical-answer rewriting, fixed
 non-answer replies and text-only fallbacks. Expert cases are stored in local SQLite for
-a later review workflow; there is no expert dashboard in this stage.
+the Stage 4 expert desk at `/expert`.
+
+> **Open the pages through the server** (`http://localhost:8000/chat`), not by
+> double-clicking `chat.html`. Opened from disk the page has no API behind it, which is
+> what produced "The service is unavailable right now" during Stage 3 testing; the page
+> now says so explicitly.
 
 The app needs the Stage 2 `data/views/` and `data/artifacts/` runtime outputs. With the
 project virtual environment active, install the requirements and build those artifacts
@@ -74,7 +80,9 @@ then run:
 uvicorn src.api.app:app --port 8000
 ```
 
-Open `/chat` for farmer chat or `/` for the operator console. Without a Groq key, typed
+Open `/chat` for farmer chat, `/expert` for the expert desk or `/` for the operator console.
+Set `EXPERT_TOKEN` in `.env` to require a token on the expert API (otherwise it is open,
+fine only on a local machine). Without a Groq key, typed
 chat uses the existing gate reply and voice reports unavailable. Generated audio and
 SQLite runtime data are local and ignored by Git. Run the voice evaluation harness with
 `python -m src.assistant.voice_eval`; synthetic outputs must not be interpreted as

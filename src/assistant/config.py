@@ -35,3 +35,12 @@ def get_groq_client():
     from groq import Groq
 
     return Groq(api_key=api_key, timeout=get_config()["groq"]["timeout_seconds"], max_retries=0)
+
+
+def chat_options() -> dict:
+    """Model-specific options shared by every chat completion call."""
+    cfg = get_config()["groq"]
+    options = {"model": cfg["chat_model"], "temperature": cfg.get("temperature", 0)}
+    if cfg.get("reasoning_effort"):
+        options["reasoning_effort"] = cfg["reasoning_effort"]
+    return options

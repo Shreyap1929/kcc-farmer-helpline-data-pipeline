@@ -36,10 +36,17 @@ async def synthesize(text: str, language: str, *, provider: str | None = None) -
     try:
         if chosen == "edge":
             voice = cfg["edge"].get(language)
-            return await _edge_synthesize(text, voice) if voice else None
+            audio = await _edge_synthesize(text, voice) if voice else None
+            if audio or provider:
+                return audio or None
+            # Edge's endpoint is unofficial and has rejected older clients (HTTP 403);
+            # fall back to gTTS rather than leave a voice caller without audio.
+            chosen = "gtts"
         if chosen == "gtts":
             lang = cfg["gtts"].get(language)
             return await asyncio.to_thread(_gtts_synthesize, text, lang) if lang else None
         raise ValueError(f"unknown TTS provider: {chosen}")
     except Exception:
+        if chosen == "edge" and not provider:
+            return await synthesize(text, language, provider="gtts")
         return None

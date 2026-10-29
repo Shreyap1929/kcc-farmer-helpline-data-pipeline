@@ -8,7 +8,106 @@ pipelines to refresh them, do not edit them by hand.
 |---|---|---|---|
 | 1. Data cleaning | Shreya | Done | 2026-10-27 20:03 |
 | 2. Triage core (text) | Amir | Done | 2026-10-27 22:50 |
-| 3. Farmer chat and voice (expert dashboard deferred) | Shreya | Partial - implementation built; model-backed validation blocked | 2026-10-28 |
+| 3. Farmer chat and voice | Shreya (built), Amir (fixes + validation) | Done - fixed and measured end to end | 2026-10-28 |
+| 4. Expert review (queue, LangGraph workflow, expert desk, reply to farmer, answer reuse) | Amir | Done - first cut | 2026-10-28 22:25 |
+
+---
+
+## Stage 4b - Reusing expert answers for repeat questions
+
+**Done by Amir** - 2026-10-28, 22:05 to 22:25 IST
+Design: [docs/stage3_fixes_stage4_review.md, section 3b](docs/stage3_fixes_stage4_review.md)
+
+Marathi/Hindi farmers never get an auto-answer from the historical KB (parity 0/80), so
+every repeat question went back to an expert. Now a safe expert answer is reused for the
+same question asked again in the same language.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Reviewed-answer index | `src/review/reviewed_answers.py` | Same-language embedding match over answered, reusable cases; refuses chemical/time-sensitive answers, risky gate reasons, dose/price/weather/scheme questions, other language or crops |
+| Chat integration | `src/api/app.py`, `src/assistant/composer.py` | Served before a new case is opened, expert's words unchanged, "answered earlier by a KCC expert (case, date)" |
+| Expert controls | `src/api/review.py`, `expert.html` | Reuse count per case and in stats; "Stop reusing this answer" (`POST /api/expert/cases/{id}/retire`) |
+| Calibration | `src/review/calibrate_reuse.py` | Threshold from same- vs different-question paraphrase pairs |
+| Tests | `tests/test_reviewed_answers.py`, `tests/test_review.py` | 12 tests: every refusal condition, retire, the full API loop, no Marathi-to-Marathi retranslation |
+
+| Measure | Result |
+|---|---|
+| Threshold | **0.936** (`config/assistant.yaml` `review.reuse_min_similarity`) |
+| Same question, reworded, reuses the expert answer | **66/80 (82%)** |
+| Different question reuses it | **0/1,963** |
+| Full test suite | **217 passed, 0 failed** |
+| Live check (real model): expert answers a Marathi soybean-varieties question | Reworded question reused; sowing-time, dose and cotton questions refused |
+
+Caveats: machine-written paraphrases, threshold chosen on the pairs it is reported on,
+narrow margin (0.926 vs 0.964). Re-check on real repeat questions once the desk has a few
+hundred answered cases. A first calibration used the wrong definition of "different"
+(advisor answers not close) and would have set 0.99; the report explains why it was replaced.
+
+---
+
+## Stage 3 fixes and Stage 4 - Expert review
+
+**Done by Amir** - 2026-10-28, 21:20 to 22:00 IST
+Design and defect list: [docs/stage3_fixes_stage4_review.md](docs/stage3_fixes_stage4_review.md)
+
+Stage 3 had never run end to end (no models on the build machine). Running it with the
+Stage 2 artifacts and a Groq key surfaced 16 defects, all fixed with regression tests.
+The ones that mattered most:
+
+- **"Service unavailable" on the chat page**: the page was opened from disk, so it had no
+  API. It now says so, retries while the models load, and the README warns.
+- **The LLM never ran**: `llama-3.1-8b-instant` is retired (404), and the error was
+  swallowed, so every farmer got raw Marathi and every expert case was untranslated.
+  Replaced with `qwen/qwen3.8-27b` after comparing the three available models.
+- **A rewrite could change the crop**: live, `gpt-oss-120b` turned groundnut into "black
+  gram" with every number intact. Rewrites are now rejected for added/dropped numbers or
+  a changed crop.
+- **New questions swallowed** after a crop clarification; **wrong reply language** for
+  Marathi typed into an English session; **Edge TTS 403** silently disabling voice
+  replies (pinned version + gTTS fallback); **Whisper audio translation** turning
+  "whitefly on cotton" into "a fish on my plate" (the transcript is now translated as text).
+
+### What was built (Stage 4)
+
+| Piece | Where | What it does |
+|---|---|---|
+| Case storage v2 | `src/assistant/sessions.py` | Statuses pending / in_review / answered / referred, in-place migration of Stage 3 databases, `case_events` audit trail, race-safe claim and resolve |
+| Review workflow | `src/review/workflow.py` | LangGraph graph: validate, refer or annotate (Stage 2 answer policy), translate to the farmer's language with number/crop checks, compose, persist |
+| Expert API | `src/api/review.py` | Queue, case detail (draft, similar calls, conversation, events), claim/release/resolve, stats; optional `EXPERT_TOKEN` |
+| Expert desk | `src/api/static/expert.html` at `/expert` | Queue with filters, case review, approve past answer / write answer / refer, outcome checks |
+| Farmer delivery | `/api/chat/session/{id}/updates`, `chat.html` | Chat polls for resolved cases and shows a "KCC expert" message with audio, delivered once |
+| Parity experiment | `src/triage/crosslingual_parity.py` | Do Marathi/Hindi farmers get the answer English questions get? |
+| Tests | `tests/test_review.py`, `tests/test_stage3_fixes.py` | 34 new tests; full suite **205 passed, 0 skipped** |
+
+### Results
+
+| Measure | Result |
+|---|---|
+| Full test suite (incl. Stage 1, Stage 2 artifact tests that were skipped before) | **205 passed, 0 failed, 0 skipped** |
+| Translate-first vs glossary expansion (12 held-out phrases) | plain 3/12, expanded **10/12**, translate 9/12; routes 13/14 each. Kept expansion |
+| Voice route agreement, 16 synthetic clips (Edge + gTTS) | mr **8/8**, hi **7/8**; expected route 12/12; mean CER mr 0.290, hi 0.154 |
+| Cross-lingual parity: 80 English questions the engine answers, rephrased in mr/hi | Same answer as English: **mr 0/80, hi 0/80**. Translate-first: 3/80 answered each, 5 of 6 differ from English. Dose questions answered: **0/160** |
+| End-to-end expert loop (live, Groq) | Marathi question -> case -> English for expert -> expert answer in English -> Marathi to farmer with every number kept, chemical flag set, audio |
+| UI | Playwright screenshots in `reports/stage4/screenshots/`; no console errors; no horizontal overflow at 390 px |
+
+### Findings worth knowing
+
+- **Auto-answering is English-only in practice.** The 0.98 threshold was calibrated on
+  English; Marathi/Hindi questions reach the right record at 0.86-0.91 and are never
+  answered, and translating first does not fix it. For Marathi and Hindi farmers the
+  expert desk is the main path, not the exception.
+- **Groq free tier is 30 requests/minute per model.** Everything fails safe, but a
+  deployment needs a paid tier.
+- **Synthetic speech is not farmer speech.** The voice numbers prove the pipeline, not
+  field accuracy.
+
+### Open items
+
+- Real voice notes (>= 20, both speakers, some noisy) through `python -m src.assistant.voice_eval`.
+- Native review of Marathi/Hindi templates.
+- A Devanagari-calibrated answer threshold, or a reviewed answer base built from
+  `reusable` expert answers (never chemical or time-sensitive).
+- Expert accounts instead of a shared token; push instead of polling; live calls.
 
 ---
 

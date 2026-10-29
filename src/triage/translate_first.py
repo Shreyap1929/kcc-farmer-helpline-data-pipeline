@@ -108,7 +108,8 @@ def evaluate(engine: TriageEngine, retriever: Retriever, *, client=None) -> str:
                                    "on_topic": _on_topic(top, row.topic_keywords)})
         for index, row in enumerate(probes.itertuples()):
             text = row.text
-            translation = translations.get(text) if translation_available else None
+            # Only the translate variant sees the translation; the others match production.
+            translation = translations.get(text) if translation_available and name == "translate" else None
             decision = engine.triage(text, crop=row.profile_crop or None, translated_text=translation,
                                      retrieval_mode=name)
             route_rows.append({"index": index, "variant": name, "text": text,

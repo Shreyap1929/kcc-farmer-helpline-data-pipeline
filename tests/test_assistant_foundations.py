@@ -66,7 +66,8 @@ def test_audio_translation_uses_translation_endpoint():
     assert client.calls[0][0] == "translate_audio"
 
 
-@pytest.mark.parametrize("audio,content_type", [(b"", "audio/webm"), (b"x" * 10_485_761, "audio/webm"), (b"x", "text/plain")])
+@pytest.mark.parametrize("audio,content_type", [(b"", "audio/webm"), (b"x" * 10_485_761, "audio/webm"), (b"x", "text/plain")],
+                         ids=["empty", "oversize", "wrong-type"])
 def test_audio_validation_rejects_empty_oversize_and_invalid_type(audio, content_type):
     with pytest.raises(ValueError):
         stt.transcribe_audio(audio, "bad", content_type)
