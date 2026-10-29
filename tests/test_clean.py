@@ -22,6 +22,11 @@ MONTHLY_DIR = "data/clean/monthly"
 PARQUET_FILE = os.path.join(CLEAN_DIR, "kcc_mh_clean.parquet")
 CSV_FILE = os.path.join(CLEAN_DIR, "kcc_mh_clean.csv")
 
+# The cleaned data is gitignored (raw files are not redistributed), so CI cannot run the
+# acceptance checks; locally a missing master is still a failure, not a skip.
+if os.environ.get("CI") and not os.path.exists(PARQUET_FILE):
+    pytestmark = pytest.mark.skip(reason="cleaned KCC data is not available in CI")
+
 # Expected monthly counts from Section 1 table
 EXPECTED_MONTHLY_COUNTS = {
     "2023-11": 13178,

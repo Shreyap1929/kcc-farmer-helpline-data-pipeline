@@ -89,6 +89,10 @@ gate:
   # agree with each other.
   answer_close_threshold: 0.5
   answer_relative_target: 0.8
+  # Stage 5: replace the similarity cut-off with the answer policy the
+  # answerability evaluation adopted (data/artifacts/answerability.joblib,
+  # reports/stage5/answerability_report.md). False = Stage 2 rule only.
+  use_answer_policy: true
 
 # Pointers given by KCC advisors in the historical answers (counts measured
 # on the clean master). Verify against the official portals before a demo.

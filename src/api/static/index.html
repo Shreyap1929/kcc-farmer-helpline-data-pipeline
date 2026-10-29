@@ -162,6 +162,9 @@
   .stat .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .bar { height: 5px; background: var(--surface-2); border-radius: 99px; margin-top: 7px; overflow: hidden; }
   .bar i { display: block; height: 100%; background: var(--brand); border-radius: 99px; }
+  .fit { margin-top: 10px; }
+  .fit .bar { position: relative; overflow: visible; }
+  .fit .cut { position: absolute; top: -3px; width: 2px; height: 11px; background: var(--text); border-radius: 1px; }
 
   .draft { background: var(--warn-bg); border: 1px dashed var(--warn); border-radius: 10px; padding: 12px 14px; margin-top: 8px; }
   .draft .lbl { font-size: 12px; font-weight: 700; color: var(--warn); margin-bottom: 4px; }
@@ -353,6 +356,11 @@ function render(r) {
       <section class="blk">
         <p class="eyebrow">Why this route</p>
         <div class="reasons">${r.reasons.map((x) => `<div class="reason"><span class="code">${esc(x.code)}</span><span class="${hasDeva(x.detail) ? "deva" : ""}">${esc(x.detail)}</span></div>`).join("")}</div>
+        ${r.answerability != null ? `
+        <div class="stat fit"><div class="k">Answer fit &middot; answerability model</div>
+          <div class="v">${pct(r.answerability)} chance the past answer matches what an advisor would say</div>
+          <div class="bar"><i style="width:${pct(r.answerability)}"></i>${answerCut != null ? `<span class="cut" style="left:${pct(answerCut)}" title="Answers from ${pct(answerCut)}"></span>` : ""}</div>
+          ${answerCut != null ? `<div class="s">Answers automatically from ${pct(answerCut)}, after every safety rule has passed.</div>` : ""}</div>` : ""}
       </section>
 
       <section class="blk">
@@ -416,6 +424,8 @@ async function run() {
   }
 }
 
+let answerCut = null;
+
 async function init() {
   $("#month").innerHTML = MONTHS.map((m, i) => `<option value="${i + 1}">${m}</option>`).join("");
   $("#month").value = String(new Date().getMonth() + 1);
@@ -425,6 +435,7 @@ async function init() {
     $("#district").insertAdjacentHTML("beforeend", meta.districts.map((d) => `<option value="${esc(d.value)}">${esc(d.label)}</option>`).join(""));
     $("#crop").insertAdjacentHTML("beforeend", meta.crops.map((c) => `<option value="${esc(c)}">${esc(c)}</option>`).join(""));
     renderExamples(meta.examples);
+    if (meta.answer_policy && meta.answer_policy.mode === "model") answerCut = meta.answer_policy.threshold;
     setStatus(true, `Ready · ${meta.kb_records.toLocaleString()} past answers`);
   } catch (err) {
     setStatus(false, "API unavailable");

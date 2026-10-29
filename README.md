@@ -10,9 +10,37 @@ point to a live or official source, or hand the case to a human expert.
 | 1 | Data cleaning pipeline ([spec](docs/kcc_data_cleaning_stage1.md)) | Done |
 | 2 | Triage core: content policy, classifiers, multilingual retrieval, routing gate, API + console ([design](docs/stage2_triage_core.md)) | Done |
 | 3 | Farmer chat and voice: Whisper STT, grounded LLM rewriting, TTS, SQLite sessions ([design](docs/stage3_chat_voice.md), [fixes](docs/stage3_fixes_stage4_review.md)) | Done (fixed and measured end to end 2026-10-28) |
-| 4 | Expert review: case queue, LangGraph resolution workflow, expert desk, answers delivered back to the farmer ([design](docs/stage3_fixes_stage4_review.md)) | Done (first cut) |
+| 4 | Expert review: case queue, LangGraph resolution workflow, expert desk, answers delivered back to the farmer, personal expert accounts ([design](docs/stage3_fixes_stage4_review.md)) | Done |
+| 5 | Answerability model: learned "will this past answer fit?" in place of the similarity cut-off ([design](docs/stage5_answerability.md), [report](reports/stage5/answerability_report.md)) | Done - adopted (rule v2), checked with an LLM judge |
 
-Progress log: [STATUS.md](STATUS.md).
+Final report: [docs/final_report.md](docs/final_report.md) · Progress log: [STATUS.md](STATUS.md) ·
+Data licence: [docs/data_licence.md](docs/data_licence.md)
+
+## Run it
+
+```bash
+# 1. Data: unzip the KCC monthly CSVs into data/raw, then build everything once (~30 min, CPU)
+python -m src.cleaning.run --raw data/raw --out data/clean --reports reports --config config
+python -m src.triage.build
+python -m src.triage.answerability_train   # Stage 5 policy (needs GROQ_API_KEY the first time)
+
+# 2a. Docker (mounts ./data, reads .env)
+docker compose up --build
+
+# 2b. or locally
+uvicorn src.api.app:app --port 8000
+```
+
+Open `http://localhost:8000/chat` (farmer), `/expert` (expert desk), `/` (operator console).
+
+`.env` (copy `.env.example`): `GROQ_API_KEY` for voice, translation and reply rewriting;
+`EXPERT_ACCOUNTS="Dr Patil:<token>,Dr Shinde:<token>"` for personal expert logins (make a
+token with `python -m src.api.review add "Dr Patil"`). Tests: `pytest -q` (also run by
+GitHub Actions on every push; tests that need the gitignored data skip there).
+
+> Data: Kisan Call Centre (KCC) - Transcripts of farmers queries & answers, Ministry of
+> Agriculture and Farmers Welfare, Government of India, via data.gov.in, under the
+> Government Open Data License - India. Not endorsed by the Ministry or data.gov.in.
 
 ---
 

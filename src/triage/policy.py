@@ -87,7 +87,7 @@ LIVE_MARKET = Lexicon([
     "market rate", "market rates", "market price", "market prices", "market information",
     "market info", "market details", "market committee", "market bhav", "price", "prices",
     "mandi*", "apmc", "bajar bhav", "bajarbhav", "bazar bhav", "bazaar bhav", "bhav",
-    "today rate", "todays rate", "current rate", "aajcha bhav", "marketrate*", "marketprice*",
+    "today rate", "todays rate", "current rate", "rate today", "rates today", "aajcha bhav", "marketrate*", "marketprice*",
     "बाजारभाव*", "बाजार भाव", "बाजार समिती", "भाव*", "मंडी*", "दाम", "कीमत", "रेट",
 ])
 

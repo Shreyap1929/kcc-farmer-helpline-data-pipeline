@@ -1,0 +1,434 @@
+{
+  "target": 0.3026506024096386,
+  "close_threshold": 0.5,
+  "advisor_agreement": 0.3783132530120482,
+  "data": {
+    "valid": {
+      "en": {
+        "asked": 29814,
+        "pool": 3026,
+        "close": 606
+      },
+      "mr": {
+        "asked": 600,
+        "pool": 263,
+        "close": 27
+      },
+      "hi": {
+        "asked": 600,
+        "pool": 367,
+        "close": 44
+      }
+    },
+    "test": {
+      "en": {
+        "asked": 40000,
+        "pool": 2687,
+        "close": 389
+      },
+      "mr": {
+        "asked": 400,
+        "pool": 185,
+        "close": 22
+      },
+      "hi": {
+        "asked": 400,
+        "pool": 225,
+        "close": 22
+      }
+    }
+  },
+  "models": {
+    "logistic": {
+      "auc": 0.8156896403827283,
+      "auc_latin": 0.8227224995226796,
+      "auc_dev": 0.7425735090327293,
+      "brier": 0.11342408773793244,
+      "threshold": 0.24,
+      "oof_close_answers": 433
+    },
+    "boosted_trees": {
+      "auc": 0.818181232190077,
+      "auc_latin": 0.8231217439925811,
+      "auc_dev": 0.7574516868653783,
+      "brier": 0.11118471990396558,
+      "threshold": 0.26,
+      "oof_close_answers": 394
+    }
+  },
+  "sim_auc": {
+    "all": 0.7135440451451643,
+    "latin": 0.7310950413223141,
+    "devanagari": 0.6547910000251959
+  },
+  "policy": {
+    "global": 0.9825,
+    "script": {
+      "latin": 0.9825,
+      "devanagari": 1.01
+    },
+    "model_threshold": {
+      "logistic": 0.24,
+      "boosted_trees": 0.26
+    }
+  },
+  "test": {
+    "global_threshold": {
+      "en": {
+        "pool": 2687,
+        "answered": 1112,
+        "close": 302,
+        "close_rate": 0.2715827338129496,
+        "close_rate_ci95": [
+          0.24640287769784172,
+          0.29856115107913667
+        ]
+      },
+      "mr": {
+        "pool": 185,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "hi": {
+        "pool": 225,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "devanagari": {
+        "pool": 410,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "all": {
+        "pool": 3097,
+        "answered": 1112,
+        "close": 302,
+        "close_rate": 0.2715827338129496,
+        "close_rate_ci95": [
+          0.2446043165467626,
+          0.29856115107913667
+        ]
+      }
+    },
+    "per_script_threshold": {
+      "en": {
+        "pool": 2687,
+        "answered": 1112,
+        "close": 302,
+        "close_rate": 0.2715827338129496,
+        "close_rate_ci95": [
+          0.24640287769784172,
+          0.29856115107913667
+        ]
+      },
+      "mr": {
+        "pool": 185,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "hi": {
+        "pool": 225,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "devanagari": {
+        "pool": 410,
+        "answered": 0,
+        "close": 0,
+        "close_rate": null,
+        "close_rate_ci95": null
+      },
+      "all": {
+        "pool": 3097,
+        "answered": 1112,
+        "close": 302,
+        "close_rate": 0.2715827338129496,
+        "close_rate_ci95": [
+          0.2446043165467626,
+          0.29856115107913667
+        ]
+      }
+    },
+    "logistic": {
+      "en": {
+        "pool": 2687,
+        "answered": 684,
+        "close": 274,
+        "close_rate": 0.40058479532163743,
+        "close_rate_ci95": [
+          0.36403508771929827,
+          0.43567251461988304
+        ]
+      },
+      "mr": {
+        "pool": 185,
+        "answered": 24,
+        "close": 9,
+        "close_rate": 0.375,
+        "close_rate_ci95": [
+          0.16666666666666666,
+          0.5833333333333334
+        ]
+      },
+      "hi": {
+        "pool": 225,
+        "answered": 35,
+        "close": 10,
+        "close_rate": 0.2857142857142857,
+        "close_rate_ci95": [
+          0.14285714285714285,
+          0.42857142857142855
+        ]
+      },
+      "devanagari": {
+        "pool": 410,
+        "answered": 59,
+        "close": 19,
+        "close_rate": 0.3220338983050847,
+        "close_rate_ci95": [
+          0.2033898305084746,
+          0.4406779661016949
+        ]
+      },
+      "all": {
+        "pool": 3097,
+        "answered": 743,
+        "close": 293,
+        "close_rate": 0.3943472409152086,
+        "close_rate_ci95": [
+          0.35935397039030953,
+          0.42934051144010765
+        ]
+      }
+    },
+    "boosted_trees": {
+      "en": {
+        "pool": 2687,
+        "answered": 561,
+        "close": 245,
+        "close_rate": 0.43672014260249553,
+        "close_rate_ci95": [
+          0.39572192513368987,
+          0.4777629233511586
+        ]
+      },
+      "mr": {
+        "pool": 185,
+        "answered": 16,
+        "close": 6,
+        "close_rate": 0.375,
+        "close_rate_ci95": [
+          0.125,
+          0.625
+        ]
+      },
+      "hi": {
+        "pool": 225,
+        "answered": 22,
+        "close": 5,
+        "close_rate": 0.22727272727272727,
+        "close_rate_ci95": [
+          0.09090909090909091,
+          0.4090909090909091
+        ]
+      },
+      "devanagari": {
+        "pool": 410,
+        "answered": 38,
+        "close": 11,
+        "close_rate": 0.2894736842105263,
+        "close_rate_ci95": [
+          0.15789473684210525,
+          0.4473684210526316
+        ]
+      },
+      "all": {
+        "pool": 3097,
+        "answered": 599,
+        "close": 256,
+        "close_rate": 0.4273789649415693,
+        "close_rate_ci95": [
+          0.39065108514190316,
+          0.4657762938230384
+        ]
+      }
+    }
+  },
+  "test_english_hard": {
+    "global_threshold": {
+      "pool": 1805,
+      "answered": 282,
+      "close": 37,
+      "close_rate": 0.13120567375886524,
+      "close_rate_ci95": [
+        0.09574468085106383,
+        0.1702127659574468
+      ]
+    },
+    "per_script_threshold": {
+      "pool": 1805,
+      "answered": 282,
+      "close": 37,
+      "close_rate": 0.13120567375886524,
+      "close_rate_ci95": [
+        0.09574468085106383,
+        0.1702127659574468
+      ]
+    },
+    "logistic": {
+      "pool": 1805,
+      "answered": 244,
+      "close": 58,
+      "close_rate": 0.23770491803278687,
+      "close_rate_ci95": [
+        0.18442622950819673,
+        0.29098360655737704
+      ]
+    },
+    "boosted_trees": {
+      "pool": 1805,
+      "answered": 148,
+      "close": 37,
+      "close_rate": 0.25,
+      "close_rate_ci95": [
+        0.17567567567567569,
+        0.31756756756756754
+      ]
+    }
+  },
+  "test_rows": 40000,
+  "coverage": {
+    "global_threshold": 0.0278,
+    "per_script_threshold": 0.0278,
+    "logistic": 0.0171,
+    "boosted_trees": 0.014025
+  },
+  "engine": {
+    "before": {
+      "probes_pass": 31,
+      "probes": 37,
+      "parity": {
+        "mr": {
+          "n": 80,
+          "answered": 0,
+          "same_as_english": 0
+        },
+        "hi": {
+          "n": 80,
+          "answered": 0,
+          "same_as_english": 0
+        }
+      },
+      "dose": {
+        "mr": {
+          "n": 40,
+          "answered": 0
+        },
+        "hi": {
+          "n": 40,
+          "answered": 0
+        }
+      }
+    },
+    "after": {
+      "probes_pass": 32,
+      "probes": 37,
+      "parity": {
+        "mr": {
+          "n": 80,
+          "answered": 6,
+          "same_as_english": 4
+        },
+        "hi": {
+          "n": 80,
+          "answered": 13,
+          "same_as_english": 7
+        }
+      },
+      "dose": {
+        "mr": {
+          "n": 40,
+          "answered": 0
+        },
+        "hi": {
+          "n": 40,
+          "answered": 0
+        }
+      }
+    }
+  },
+  "candidate": "logistic",
+  "engine_model": {
+    "probes_pass": 32,
+    "probes": 37,
+    "parity": {
+      "mr": {
+        "n": 80,
+        "answered": 6,
+        "same_as_english": 4
+      },
+      "hi": {
+        "n": 80,
+        "answered": 13,
+        "same_as_english": 7
+      }
+    },
+    "dose": {
+      "mr": {
+        "n": 40,
+        "answered": 0
+      },
+      "hi": {
+        "n": 40,
+        "answered": 0
+      }
+    }
+  },
+  "engine_per_script": {
+    "probes_pass": 31,
+    "probes": 37,
+    "parity": {
+      "mr": {
+        "n": 80,
+        "answered": 0,
+        "same_as_english": 0
+      },
+      "hi": {
+        "n": 80,
+        "answered": 0,
+        "same_as_english": 0
+      }
+    },
+    "dose": {
+      "mr": {
+        "n": 40,
+        "answered": 0
+      },
+      "hi": {
+        "n": 40,
+        "answered": 0
+      }
+    }
+  },
+  "decision": "model (logistic) (rule v2; rule v1 said: keep the Stage 2 rule)",
+  "decision_log": [
+    "Best model on validation (most close answers out-of-fold at its cut-off): `logistic`.",
+    "(a) close rate >= 30.3%: model en 40.1% [36%-44%], devanagari 32.2% [20%-44%] -> met; per-script en 27.2% [25%-30%], devanagari - -> NOT met.",
+    "(b) close answers on the test pool: model 293, per-script 302, global 302.",
+    "(c) dose questions answered: model 0, per-script 0; chemical answers served: 0 by construction (the policy is only reached after the CHEMICAL_ANSWER rule).",
+    "(d) probes: Stage 2 31, model 32, per-script 31 (of 37).",
+    "Not part of the rule, for reading it: the Stage 2 rule itself is close 27.2% [25%-30%] on English test questions, BELOW the 30.3% target. Criterion (b) counts close answers without asking whether the baseline meets (a).",
+    "Rule v1 (fixed before run 1) verdict: keep the Stage 2 rule.",
+    "Rule v2 feasible policies (meet (a), (c), (d)): model (logistic) (293 close)."
+  ]
+}

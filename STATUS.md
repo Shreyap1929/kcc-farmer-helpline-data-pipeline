@@ -10,6 +10,71 @@ pipelines to refresh them, do not edit them by hand.
 | 2. Triage core (text) | Amir | Done | 2026-10-27 22:50 |
 | 3. Farmer chat and voice | Shreya (built), Amir (fixes + validation) | Done - fixed and measured end to end | 2026-10-28 |
 | 4. Expert review (queue, LangGraph workflow, expert desk, reply to farmer, answer reuse) | Amir | Done - first cut | 2026-10-28 22:25 |
+| 5. Answerability model (source of truth 8B) | Amir | Done - adopted (rule v2), checked with an LLM judge | 2026-10-29 |
+| 6. Project close-out: expert accounts, Docker, CI, licence, final report | Amir | Done | 2026-10-29 |
+| Human review: native template review, real voice notes | Amir, Shreya | Done (reported by Amir; recordings not in the repo) | 2026-10-29 |
+
+---
+
+## Project close-out
+
+**Done by Amir** - 2026-10-29, 11:15 to 12:00 IST. Summary for reviewers: [docs/final_report.md](docs/final_report.md)
+
+| Piece | Where | Result |
+|---|---|---|
+| Stage 5 decision | `src/triage/answerability_train.py` (rule v2) | **Model adopted.** Rule v1 kept Stage 2 on close-answer count alone; v2 also holds the Stage 2 rule to the 30.3% target it misses (27.2%). Revised after seeing run 1, reported as such; run 2 reproduced run 1 exactly |
+| Independent check | `src/triage/answer_judge.py`, [report](reports/stage5/answer_judge_report.md) | LLM judge (qwen, one model for all 418 cases): same advice as the advisor 25% (model) vs 20% (Stage 2) in English, 27% Marathi/Hindi; answers only Stage 2 gives are right 6%. Proxy and judge agree 82% |
+| Expert accounts | `src/api/review.py`, `expert.html` | `EXPERT_ACCOUNTS`: personal tokens; server decides who acts (body name ignored); `python -m src.api.review add NAME`; shared token still works |
+| Docker | `Dockerfile`, `docker-compose.yml` | Built and run: healthy, 126,328 KB records, model policy live |
+| CI | `.github/workflows/tests.yml` | pytest on every push; data-dependent tests skip in CI only |
+| Licence | [docs/data_licence.md](docs/data_licence.md) | GODL-India; attribution statement in README (data.gov.in blocks automated reads, checked via published copies) |
+| Human-review items | `config/reply_templates.yaml` | Native template review and real voice notes reported done by Amir and Shreya; recordings are not in the repo, so no real-speech numbers |
+| Screenshots | `reports/stage5/screenshots/` | Console answer-fit bar (desktop light, mobile dark), expert desk signed in with a personal account; no console errors, no overflow at 390 px |
+| Tests | | **240 passed, 0 failed** |
+
+Found on the way: mixing judge models was unsafe (gpt-oss-20b said "partly" where qwen and
+gpt-oss-120b said "same" on the same case); 36 mixed verdicts were discarded and re-judged.
+
+---
+
+## Stage 5 - Answerability model
+
+**Done by Amir** - 2026-10-29, 10:30 to 11:10 IST
+Design: [docs/stage5_answerability.md](docs/stage5_answerability.md) - Report: [reports/stage5/answerability_report.md](reports/stage5/answerability_report.md)
+
+The gate's single similarity cut-off (0.9825, calibrated on English) is why Marathi/Hindi
+questions were never auto-answered. A learned model now estimates whether the best past
+answer will match what an advisor would say. It replaces only that comparison; every
+safety rule still runs first.
+
+| Piece | Where |
+|---|---|
+| Features + answer policy | `src/triage/answerability.py` |
+| Gate hook (refusals keep `LOW_CONFIDENCE`) | `src/triage/gate.py`, `src/triage/engine.py`, `config/triage.yaml` (`use_answer_policy`) |
+| Training, evaluation, pre-registered decision | `src/triage/answerability_train.py` (`python -m src.triage.answerability_train`) |
+| Console "answer fit" bar | `src/api/static/index.html` |
+| Policy fix found while testing | `"rate today"` now a live-market phrase (`src/triage/policy.py`) |
+| Tests | `tests/test_answerability.py` (19), `tests/test_policy.py` (+1) |
+
+| Measure (test months) | Stage 2 rule | Logistic model |
+|---|---:|---:|
+| English answered / close rate | 1,112 / 27.2% | 684 / **40.1%** |
+| English never-seen questions close rate | 13.1% | **23.8%** |
+| Marathi + Hindi answered / close rate | 0 / - | **59 / 32.2%** |
+| Close answers, all languages | **302** | 293 |
+| Stage 4 parity set answered, mr / hi | 0 / 0 | 6 / 13 |
+| Dose questions answered | 0 | 0 |
+| Validation AUC (model vs similarity alone) | 0.71 | **0.82** |
+| Full test suite | | **237 passed, 0 failed** |
+
+**Decision (first run): keep the Stage 2 rule** by the pre-registered criterion (more
+close answers in total; the model gives 9 fewer). The Stage 2 rule itself is below its own
+30.3% target on test (27.2%), which that criterion did not check. Superseded in the
+close-out above: rule v2 adopts the model.
+
+Caveats: "close" is still a proxy (no golden set); Devanagari questions are machine
+rephrasings; 59 Devanagari answered cases (CI 20-44%). Rephrasings cost ~100 Groq calls
+(free tier rate-limited; cached).
 
 ---
 
